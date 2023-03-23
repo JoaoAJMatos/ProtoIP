@@ -2,6 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
+// Include the ProtoIP namespace
 using ProtoIP;
 
 class Program {
@@ -13,8 +14,7 @@ class Program {
             // Create a new Stream object
             ProtoIP.Stream _stream = new Stream(stream);
 
-            // Transmit the data
-            byte[] data = Encoding.ASCII.GetBytes("Hello World!");
-            _stream.Transmit(data);
+            // Transmit a string over the network
+            _stream.Transmit("Hello World!");
       }
 }
