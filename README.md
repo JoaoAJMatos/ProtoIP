@@ -2,7 +2,7 @@
 
 > From students to students
 
-**ProtoIP** is an open source alternative to **ProtocolSI**, offering a simple and up-to-date interface for introducing students to network programming in **C#**.
+**ProtoIP** is an open source alternative to **ProtocolSI**, offering a simple and up-to-date interface for introducing students to network programming and cryptography essentials in **C#**.
 
 ## Features
 
