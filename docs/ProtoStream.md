@@ -41,8 +41,7 @@ To receive data from a **NetworkStream**, use ProtoStream's `Receive()` function
 
 To get the received data, it must first be re-assembled. To do this, you can call one of the following methods:
 
-- `AssembleData()` - Returns a byte array with the assembled data.
-- `AssembleDataAs(type)` - Returns the assembled data as the given data type.
+- `GetDataAs<T>()` - Returns the assembled data as the given data type (_**for example `GetDataAs<byte[]>()`**_).
 
 Note that, with the first method, **you must treat the byte array correctly in the context of your application**. Writting the bytes into a file for example.
 
@@ -66,8 +65,8 @@ class Program {
             // Receive the response
             pStream.Receive();
 
-            // Assemble the response and show it
-            string response = pStream.AssembleDataAs(string);
+            // Get the assembled response and show it
+            string response = pStream.GetDataAs<string>();
             Console.WriteLine(response);
       }
 }

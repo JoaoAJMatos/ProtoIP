@@ -1,13 +1,13 @@
-# Packet
+# ProtoPacket
 
 Packets provide the user with **low level access to protocol definitions**, similar to **ProtocolSI**. Allowing you to manipulate the contents of the packets such as the **headers** or the **payload**.
 
 Packets have a fixed size of `1024` bytes, including the headers (which take up `12` bytes):
 
 - **12 bytes** - Packet headers
-- **1012 bytes** - Packet payload
+- **1012 bytes** - Packet payload (*and padding*)
 
-When assigning data to a packet, if the data isn't enough to fill the entire payload buffer, padding will be added to the packet until it fills an entire `1024` byte buffer.
+When assigning data to a packet, if the data isn't enough to fill the entire payload buffer, padding will be added to the packet until it fills an entire `1024` byte buffer to ensure every packet has the same size.
 
 ## Packet types
 
@@ -18,18 +18,17 @@ When assigning data to a packet, if the data isn't enough to fill the entire pay
 - `HANDSHAKE_RES` - Handshake response.
 - `PUBLIC_KEY` - Public key.
 - `BYTES` - Byte array.
-- `REPEAT` - To repeat a given packet (check [ProtoStreams](ProtoStream.md)).
+- `REPEAT` - To repeat a given packet in a **PacketStream** (check [ProtoStreams](ProtoStream.md)).
 - `SOT` - Start of transmission.
 - `EOT` - End of transmission.
 - `FTS` - File transfer start.
-- `FTE` - File transfer chunk.
+- `FTE` - File transfer end.
 - `FILE_NAME` - File name.
 - `FILE_SIZE` - File size.
 - `CHECKSUM` - File Checksum.
-- `PING` - Ping.
-- `PONG` - Pong.
-- `RELAY` - Relay packet (check [Relay Server]()).
-- `BROADCAST` - Broadcast packet (check [Peer-to-Peer]()).
+- `PING` - Ping request.
+- `PONG` - Ping response.
+- `BROADCAST` - Broadcast packet.
 
 These definitions serve as boilerplate for the user to use when creating their own protocol definitions. However, you can use **any integer value** as a packet type, giving you the flexibility you need to **define your own protocols**.
 
