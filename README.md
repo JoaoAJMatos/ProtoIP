@@ -1,6 +1,6 @@
 # ProtoIP
 
-> From students to students
+> From students to students - Instituto Politécnico de Leiria
 
 **ProtoIP** is an open source alternative to **ProtocolSI**, offering a simple and up-to-date interface for introducing students to network programming and cryptography essentials in **C#**.
 
@@ -63,3 +63,5 @@ See also the list of [contributors]().
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](/LICENSE.md) file for details.
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
