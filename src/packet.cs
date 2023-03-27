@@ -9,7 +9,7 @@ namespace ProtoIP
             const int BUFFER_SIZE = Common.Network.DEFAULT_BUFFER_SIZE;
 
             // Header
-            private Common.Packet.Type _type;
+            private int _type;
             private int _id;
             private int _dataSize;
 
@@ -19,11 +19,25 @@ namespace ProtoIP
             /* CONSTRUCTORS */
             public Packet() {}
 
-            public Packet(Common.Packet.Type type, int id, int dataSize, byte[] data) {
+            public Packet(int type, int id, int dataSize, byte[] data) {
                   this._type = type;
                   this._id = id;
                   this._dataSize = dataSize;
                   this._data = data;
+            }
+
+            public Packet(int type, int id, int dataSize, string data) {
+                  this._type = type;
+                  this._id = id;
+                  this._dataSize = dataSize;
+                  this._data = Encoding.ASCII.GetBytes(data);
+            }
+
+            public Packet(int type) {
+                  this._type = type;
+                  this._id = 0;
+                  this._dataSize = 0;
+                  this._data = null;
             }
 
             public Packet(string stringData) {
@@ -33,12 +47,11 @@ namespace ProtoIP
                   this._data = Encoding.ASCII.GetBytes(stringData);
             }
 
-
             static public byte[] Serialize(Packet packet) {
                   byte[] buffer = new byte[BUFFER_SIZE];
 
                   // Packet Header
-                  byte[] type = BitConverter.GetBytes((int)packet._type);
+                  byte[] type = BitConverter.GetBytes(packet._type);
                   byte[] id = BitConverter.GetBytes(packet._id);
                   byte[] dataSize = BitConverter.GetBytes(packet._dataSize);
 
@@ -78,7 +91,7 @@ namespace ProtoIP
                   Buffer.BlockCopy(buffer, type.Length + id.Length + dataSize.Length, data, 0, data.Length);
 
                   // Set packet
-                  packet._type = (Common.Packet.Type)BitConverter.ToInt32(type, 0);
+                  packet._type = BitConverter.ToInt32(type, 0);
                   packet._id = BitConverter.ToInt32(id, 0);
                   packet._dataSize = BitConverter.ToInt32(dataSize, 0);
                   packet._data = data;
@@ -91,7 +104,7 @@ namespace ProtoIP
             }
 
             /* GETTERS & SETTERS */
-            public Common.Packet.Type _GetType() { return this._type; }
+            public int _GetType() { return this._type; }
             public int _GetId() { return this._id; }
             public int _GetDataSize() { return this._dataSize; }
             public byte[] _GetData() { return this._data; }
@@ -99,6 +112,7 @@ namespace ProtoIP
             public void _SetType(Common.Packet.Type type) { this._type = type; }
             public void _SetId(int id) { this._id = id; }
             public void _SetDataSize(int dataSize) { this._dataSize = dataSize; }
-            public void _SetData(byte[] data) { this._data = data; }
+            public void _SetData(byte[] data) { this._data = data; this._dataSize = data.Length; }
+            public void _SetData(string data) { this._data = Encoding.ASCII.GetBytes(data); this._dataSize = data.Length; }
       }
 }
