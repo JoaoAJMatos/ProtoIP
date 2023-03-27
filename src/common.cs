@@ -2,6 +2,7 @@ namespace ProtoIP
 {
       namespace Common 
       {
+            // Error definitions
             class Error {
                   public const string INVALID_PACKET = "Invalid packet";
                   public const string INVALID_PACKET_TYPE = "Invalid packet type";
@@ -23,30 +24,28 @@ namespace ProtoIP
                   public const int DEFAULT_BUFFER_SIZE = 1024;
                   public const int MAX_TRIES = 3;
                   public const int MAX_PACKETS = 1024;
-            }
 
-            class Packet {
-                  public enum Type {
-                        ACK,
-                        HANDSHAKE_REQ,
-                        HANDSHAKE_RES,
-                        PUBLIC_KEY,
-                        BYTES,
-                        REPEAT,
-                        END_OF_TRANSMISSION,
-                        START_OF_TRANSMISSION,
-                        FILE_TRANSMISSION_START,
-                        FILE_TRANSMISSION_END,
-                        FILE_NAME,
-                        FILE_SIZE,
-                        PING,
-                        PONG,
-                        CHECKSUM,
-                        RELAY,
-                        BROADCAST
+                  // Network connection object
+                  public struct Connection {
+                        public TcpClient client;
+                        public NetworkStream stream;
                   }
 
-                  public const int HEADER_SIZE = 12;
+                  // Connect to a host and return a connection object
+                  public Connection Connect(string host, int port) {
+                        Connection connection = new Connection();
+
+                        connection.client = new TcpClient(host, port);
+                        connection.stream = connection.client.GetStream();
+
+                        return connection;
+                  }
+
+                  // Disconnect from a host
+                  public void Disconnect(Connection connection) {
+                        connection.stream.Close();
+                        connection.client.Close();
+                  }
             }
       }
 }

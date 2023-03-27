@@ -5,49 +5,77 @@ using ProtoIP.Common;
 
 namespace ProtoIP
 {
-      class Packet {
+      class Packet
+      {
+            // Default packet types for the ProtoIP library
+            public enum Type
+            {
+                  ACK,
+                  HANDSHAKE_REQ,
+                  HANDSHAKE_RES,
+                  PUBLIC_KEY,
+                  BYTES,
+                  REPEAT,
+                  EOT,
+                  SOT,
+                  FTS,
+                  FTE,
+                  FILE_NAME,
+                  FILE_SIZE,
+                  PING,
+                  PONG,
+                  CHECKSUM,
+                  RELAY,
+                  BROADCAST
+            }
+
+            const int HEADER_SIZE = 12;
             const int BUFFER_SIZE = Common.Network.DEFAULT_BUFFER_SIZE;
 
-            // Header
+            /* MEMBER VARIABLES */
             private int _type;
             private int _id;
             private int _dataSize;
-
-            // Payload
+            
             private byte[] _data;
 
             /* CONSTRUCTORS */
-            public Packet() {}
+            public Packet() { }
 
-            public Packet(int type, int id, int dataSize, byte[] data) {
+            public Packet(int type, int id, int dataSize, byte[] data)
+            {
                   this._type = type;
                   this._id = id;
                   this._dataSize = dataSize;
                   this._data = data;
             }
 
-            public Packet(int type, int id, int dataSize, string data) {
+            public Packet(int type, int id, int dataSize, string data)
+            {
                   this._type = type;
                   this._id = id;
                   this._dataSize = dataSize;
                   this._data = Encoding.ASCII.GetBytes(data);
             }
 
-            public Packet(int type) {
+            public Packet(int type)
+            {
                   this._type = type;
                   this._id = 0;
                   this._dataSize = 0;
                   this._data = null;
             }
 
-            public Packet(string stringData) {
+            public Packet(string stringData)
+            {
                   this._type = Common.Packet.Type.BYTES;
                   this._id = 0;
                   this._dataSize = stringData.Length;
                   this._data = Encoding.ASCII.GetBytes(stringData);
             }
 
-            static public byte[] Serialize(Packet packet) {
+            static public byte[] Serialize(Packet packet)
+            {
                   byte[] buffer = new byte[BUFFER_SIZE];
 
                   // Packet Header
@@ -65,7 +93,8 @@ namespace ProtoIP
                   Buffer.BlockCopy(data, 0, buffer, type.Length + id.Length + dataSize.Length, data.Length);
 
                   // Add padding if needed
-                  if (buffer.Length < BUFFER_SIZE) {
+                  if (buffer.Length < BUFFER_SIZE)
+                  {
                         byte[] padding = new byte[BUFFER_SIZE - buffer.Length];
                         Buffer.BlockCopy(padding, 0, buffer, buffer.Length, padding.Length);
                   }
@@ -73,7 +102,8 @@ namespace ProtoIP
                   return buffer;
             }
 
-            static public Packet Deserialize(byte[] buffer) {
+            static public Packet Deserialize(byte[] buffer)
+            {
                   Packet packet = new Packet();
 
                   // Packet Header
@@ -97,10 +127,6 @@ namespace ProtoIP
                   packet._data = data;
 
                   return packet;
-            }
-
-            public override string ToString() {
-                  return Encoding.ASCII.GetString(this._data);
             }
 
             /* GETTERS & SETTERS */
