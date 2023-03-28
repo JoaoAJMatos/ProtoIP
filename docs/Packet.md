@@ -58,16 +58,15 @@ These definitions serve as boilerplate for the user to use when creating their o
 
 > Data manipulation
 
-- `void SetData(byte[] data)` - Sets the packet's payload to the given byte array and updates `_dataSize`.
-- `void SetData(string data)` - Sets the packet's payload to the given string and updates `_dataSize`.
+- `void SetPayload(byte[] data)` - Sets the packet's payload to the given byte array and updates `_dataSize`.
+- `void SetPayload(string data)` - Sets the packet's payload to the given string and updates `_dataSize`.
 
 > Getters
 
-- `string GetDataAsString()` - Returns the packet's payload as a string.
-- `byte[] GetData()` - Returns the packet's payload as a byte array.
-- `int GetId()` - Returns the packet's id.
-- `int GetType()` - Returns the packet's type.
-- `int GetDataSize()` - Returns the packet's payload size.
+- `T GetDataAs<T>()` - Returns the packet's payload as the given type.
+- `int _GetId()` - Returns the packet's id.
+- `int _GetType()` - Returns the packet's type.
+- `int _GetDataSize()` - Returns the packet's payload size.
 
 ## Example
 
@@ -84,20 +83,16 @@ class Program
       {
             // Create a new packet
             Packet packet = new Packet(HELLO_PACKET);
-            packet.SetData("Hello World!");
-
-            // Or:
-            // 
-            // Packet packet = new Packet(HELLO_PACKET, 0, 12, "Hello World!");
+            packet.SetPayload("Hello World!");
 
             // Serialize the packet
             // You can send this buffer over the network and deserialize it on the other end
-            byte[] serializedPacket = packet.Serialize();
+            byte[] serializedPacket = Packet.Serialize(packet);
 
             // Deserialize the packet
             Packet deserializedPacket = Packet.Deserialize(serializedPacket);
 
-            // Get the packet's payload
+            // Get the packet's payload as a string
             string payload = deserializedPacket.GetDataAs<string>();
       }
 }
