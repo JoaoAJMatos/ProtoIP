@@ -6,12 +6,12 @@ using ProtoIP.Common;
 
 namespace ProtoIP
 {
-      public class Client
+      public class ProtoClient
       {
             private Common.Network.Connection _serverConnection;
             private ProtoIP.ProtoStream _protoStream;
 
-            public Client() {}
+            public ProtoClient() {}
 
             // Connect to the remote host and create a new ProtoStream object.
             //
@@ -39,6 +39,12 @@ namespace ProtoIP
             //
             // Call the OnSend() method.
             public void Send(byte[] data)
+            {
+                  _protoStream.Transmit(data);
+                  OnSend();
+            }
+
+            public void Send(string data)
             {
                   _protoStream.Transmit(data);
                   OnSend();

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading;
 using System.Net.Sockets;
+using System.Collections.Generic;
 using System;
 
 using ProtoIP;
@@ -8,39 +9,46 @@ using ProtoIP.Common;
 
 namespace ProtoIP
 {
-      public class Server {
-            private ProtoIP.ProtoStream[] _protoStreamArrayClients;
-            private int _serverPort;
+      public class ProtoServer {
+            private List<ProtoStream> _clients = new List<ProtoStream>();
             private TcpListener _listener;
 
-            public Server(int port) {
-                  this._serverPort = port;
-            }
+            public ProtoServer() {}
 
-            private void StartListening() {
-                  // Create a new TcpListener
-                  _listener = new TcpListener(_serverPort);
+            // Creates a TCP listener and starts listening for connections
+            private void StartListening(int port) {
+                  _listener = new TcpListener(port);
                   _listener.Start();
             }
 
+            // Accepts new connections and adds them to the clients List
+            // Calls the OnUserConnect() method in a separate thread on every connect event
             private void AcceptConnections() {
-                  // Accept a new connection
                   TcpClient client = _listener.AcceptTcpClient();
                   NetworkStream stream = client.GetStream();
-
-                  // Create a new ProtoStream object
                   ProtoStream protoStream = new ProtoStream(stream);
 
-                  // Add the new ProtoStream to the array
-                  Array.Resize(ref _protoStreamArrayClients, _protoStreamArrayClients.Length + 1);
-                  _protoStreamArrayClients[_protoStreamArrayClients.Length - 1] = protoStream;
+                  _clients.Add(protoStream);
 
-                  // Start a new thread to handle the connection
-                  Thread thread = new Thread(new ThreadStart(OnUserConnect));
+                  Thread thread = new Thread(() => OnUserConnect(_clients.Count - 1));
+                  thread.Start();
             }
 
-            public void Start() {
-                  StartListening();
+            // Send data to the client and call the OnResponse() method
+            public void Send(byte[] data, int userID) {
+                  _clients[userID].Transmit(data);
+                  OnResponse(userID);
+            }
+
+            // Receive data from the client and call the OnRequest() method
+            public void Receive(int userID) {
+                  _clients[userID].Receive();
+                  OnRequest(userID);
+            }
+
+            // Starts the main server loop
+            public void Start(int port) {
+                  StartListening(port);
                   
                   while (true) {
                         AcceptConnections();
@@ -48,9 +56,8 @@ namespace ProtoIP
             }
 
             // Virtual functions
-            public virtual void OnUserConnect() {}
-            public virtual void OnUserDisconnect() {}
-            public virtual void OnResponse() {}
-            public virtual void OnRequest() {}
+            public virtual void OnUserConnect(int userID) { Receive(userID); }
+            public virtual void OnResponse(int userID) {}
+            public virtual void OnRequest(int userID) {}
       }
 }
