@@ -8,7 +8,7 @@ using ProtoIP.Common;
 
 namespace ProtoIP
 {
-      class Server {
+      public class Server {
             private ProtoIP.ProtoStream[] _protoStreamArrayClients;
             private int _serverPort;
             private TcpListener _listener;

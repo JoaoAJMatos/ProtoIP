@@ -4,7 +4,7 @@ namespace ProtoIP
       namespace Common 
       {
             // Error definitions
-            class Error {
+            public class Error {
                   public const string INVALID_PACKET = "Invalid packet";
                   public const string INVALID_PACKET_TYPE = "Invalid packet type";
                   public const string INVALID_PACKET_ID = "Invalid packet id";
@@ -21,7 +21,7 @@ namespace ProtoIP
                   }
             }
 
-            class Network {
+            public class Network {
                   public const int DEFAULT_BUFFER_SIZE = 1024;
                   public const int MAX_TRIES = 3;
                   public const int MAX_PACKETS = 1024;

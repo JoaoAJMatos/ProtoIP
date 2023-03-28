@@ -8,7 +8,7 @@ using static ProtoIP.Packet;
 
 namespace ProtoIP
 {
-      class ProtoStream
+      public class ProtoStream
       {
             const int BUFFER_SIZE = Common.Network.DEFAULT_BUFFER_SIZE;
 

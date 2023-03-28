@@ -5,7 +5,7 @@ using ProtoIP.Common;
 
 namespace ProtoIP
 {
-      class Packet
+      public class Packet
       {
             // Default packet types for the ProtoIP library
             public enum Type

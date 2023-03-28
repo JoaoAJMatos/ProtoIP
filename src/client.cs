@@ -6,7 +6,7 @@ using ProtoIP.Common;
 
 namespace ProtoIP
 {
-      class Client
+      public class Client
       {
             private Common.Network.Connection _serverConnection;
             private ProtoIP.ProtoStream _protoStream;
