@@ -95,7 +95,7 @@ class Program
             byte[] serializedPacket = packet.Serialize();
 
             // Deserialize the packet
-            Packet deserializedPacket = new Packet().Deserialize(serializedPacket);
+            Packet deserializedPacket = Packet.Deserialize(serializedPacket);
 
             // Get the packet's payload
             string payload = deserializedPacket.GetDataAs<string>();
