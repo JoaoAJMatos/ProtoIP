@@ -29,7 +29,7 @@ namespace ProtoIP
                   BROADCAST
             }
 
-            const int HEADER_SIZE = 12;
+            public const int HEADER_SIZE = 12;
             const int BUFFER_SIZE = Common.Network.DEFAULT_BUFFER_SIZE;
 
             /* MEMBER VARIABLES */
@@ -68,7 +68,7 @@ namespace ProtoIP
 
             public Packet(string stringData)
             {
-                  this._type = Common.Packet.Type.BYTES;
+                  this._type = (int)Type.BYTES;
                   this._id = 0;
                   this._dataSize = stringData.Length;
                   this._data = Encoding.ASCII.GetBytes(stringData);
@@ -135,7 +135,7 @@ namespace ProtoIP
             public int _GetDataSize() { return this._dataSize; }
             public byte[] _GetData() { return this._data; }
 
-            public void _SetType(Common.Packet.Type type) { this._type = type; }
+            public void _SetType(Type type) { this._type = (int)type; }
             public void _SetId(int id) { this._id = id; }
             public void _SetDataSize(int dataSize) { this._dataSize = dataSize; }
             public void _SetData(byte[] data) { this._data = data; this._dataSize = data.Length; }

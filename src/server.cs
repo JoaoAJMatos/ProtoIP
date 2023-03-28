@@ -1,8 +1,7 @@
 using System.Text;
 using System.Threading;
+using System.Net.Sockets;
 using System;
-
-using stream;
 
 using ProtoIP;
 using ProtoIP.Common;
@@ -26,14 +25,15 @@ namespace ProtoIP
 
             private void AcceptConnections() {
                   // Accept a new connection
-                  TcpClient client = listener.AcceptTcpClient();
+                  TcpClient client = _listener.AcceptTcpClient();
                   NetworkStream stream = client.GetStream();
 
                   // Create a new ProtoStream object
-                  _protoStream = new Stream(stream);
+                  ProtoStream protoStream = new ProtoStream(stream);
 
                   // Add the new ProtoStream to the array
-                  _protoStreamArray.Append(_protoStream);
+                  Array.Resize(ref _protoStreamArrayClients, _protoStreamArrayClients.Length + 1);
+                  _protoStreamArrayClients[_protoStreamArrayClients.Length - 1] = protoStream;
 
                   // Start a new thread to handle the connection
                   Thread thread = new Thread(new ThreadStart(OnUserConnect));

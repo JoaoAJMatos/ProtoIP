@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 namespace ProtoIP
 {
       namespace Common 
@@ -27,12 +28,12 @@ namespace ProtoIP
 
                   // Network connection object
                   public struct Connection {
-                        TcpClient client;
-                        NetworkStream stream;
+                        public TcpClient client;
+                        public NetworkStream stream;
                   }
 
                   // Connect to a host and return a connection object
-                  public Connection Connect(string host, int port) {
+                  public static Connection Connect(string host, int port) {
                         Connection connection = new Connection();
 
                         connection.client = new TcpClient(host, port);
@@ -42,7 +43,7 @@ namespace ProtoIP
                   }
 
                   // Disconnect from a host
-                  public void Disconnect(Connection connection) {
+                  public static void Disconnect(Connection connection) {
                         connection.stream.Close();
                         connection.client.Close();
                   }

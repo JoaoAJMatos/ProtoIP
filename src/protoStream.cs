@@ -18,10 +18,10 @@ namespace ProtoIP
             private string _LastError;
 
             /* CONSTRUCTORS */
-            public Stream() {}
-            public Stream(NetworkStream stream) { this._stream = stream; }
-            public Stream(Packet[] packets) { this._packets = packets; }
-            public Stream(Packet[] packets, NetworkStream stream) { this._packets = packets; this._stream = stream; }
+            public ProtoStream() {}
+            public ProtoStream(NetworkStream stream) { this._stream = stream; }
+            public ProtoStream(Packet[] packets) { this._packets = packets; }
+            public ProtoStream(Packet[] packets, NetworkStream stream) { this._packets = packets; this._stream = stream; }
 
             /* PRIVATE METHODS & HELPER FUNCTIONS */
             private bool peerAckReceive() {
@@ -32,7 +32,7 @@ namespace ProtoIP
                   }
 
                   Packet packet = Packet.Deserialize(this._buffer);
-                  if (packet._GetType() != Common.Packet.Type.ACK) {
+                  if (packet._GetType() != (int)Packet.Type.ACK) {
                         this._LastError = "Invalid packet type";
                         return false;
                   }
@@ -41,7 +41,7 @@ namespace ProtoIP
             }
 
             private bool peerAckSend() {
-                  this._buffer = Packet.Serialize(new Packet(Common.Packet.Type.ACK, 0, 0, null));
+                  this._buffer = Packet.Serialize(new Packet((int)Packet.Type.ACK, 0, 0, ""));
                   if (this.TryWrite(this._buffer) < BUFFER_SIZE) {
                         this._LastError = "Failed to send the ACK packet";
                         return false;
@@ -51,7 +51,7 @@ namespace ProtoIP
             }
 
             private bool peerTransmitionStartSend() {
-                  this._buffer = Packet.Serialize(new Packet(Common.Packet.Type.START_OF_TRANSMISSION, 0, 0, null));
+                  this._buffer = Packet.Serialize(new Packet((int)Packet.Type.SOT, 0, 0, ""));
                   if (this.TryWrite(this._buffer) < BUFFER_SIZE) {
                         this._LastError = "Failed to send the START_OF_TRANSMISSION packet";
                         return false;
@@ -68,7 +68,7 @@ namespace ProtoIP
                   }
 
                   Packet packet = Packet.Deserialize(this._buffer);
-                  if (packet._GetType() != Common.Packet.Type.START_OF_TRANSMISSION) {
+                  if (packet._GetType() != (int)Packet.Type.SOT) {
                         this._LastError = "Invalid packet type";
                         return false;
                   }
@@ -77,7 +77,7 @@ namespace ProtoIP
             }
 
             private bool peerTransmitionEndSend() {
-                  this._buffer = Packet.Serialize(new Packet(Common.Packet.Type.END_OF_TRANSMISSION, 0, 0, null));
+                  this._buffer = Packet.Serialize(new Packet((int)Packet.Type.EOT, 0, 0, ""));
                   if (this.TryWrite(this._buffer) < BUFFER_SIZE) {
                         this._LastError = "Failed to send the END_OF_TRANSMISSION packet";
                         return false;
@@ -94,7 +94,7 @@ namespace ProtoIP
                   }
 
                   Packet packet = Packet.Deserialize(this._buffer);
-                  if (packet._GetType() != Common.Packet.Type.END_OF_TRANSMISSION) {
+                  if (packet._GetType() != (int)Packet.Type.EOT) {
                         this._LastError = "Invalid packet type";
                         return false;
                   }
@@ -125,7 +125,7 @@ namespace ProtoIP
              * Orders the packets by id and assembles the data buffer
              */
             private int Assemble() {
-                  Stream.OrderPackets(this._packets);
+                  ProtoStream.OrderPackets(this._packets);
 
                   if (!this.ValidatePackets()) {
                         return -1;
@@ -149,7 +149,7 @@ namespace ProtoIP
             /*
              * Attemps to write the data to the stream until it succeeds or the number of tries is reached
              */
-            private int TryWrite(byte[] data, int tries = Common.Network.MAX_TRIES) {
+            private int TryWrite(byte[] data, int tries = Network.MAX_TRIES) {
                   int bytesWritten = 0;
 
                   while (bytesWritten < data.Length && tries > 0) {
@@ -167,7 +167,7 @@ namespace ProtoIP
             /*
              * Attemps to read the data from the stream until it succeeds or the number of tries is reached
              */
-            private int TryRead(byte[] data, int tries = Common.Network.MAX_TRIES) {
+            private int TryRead(byte[] data, int tries = Network.MAX_TRIES) {
                   int bytesRead = 0;
 
                   while (bytesRead < data.Length && tries > 0) {
@@ -186,8 +186,8 @@ namespace ProtoIP
              * Partitions the data into packets and adds them to the list
              */
             private void Partition(byte[] data) {
-                  if (data.Length > (BUFFER_SIZE) - Common.Packet.HEADER_SIZE) {
-                        int numPackets = (int) Math.Ceiling((double) data.Length / ((BUFFER_SIZE) - Common.Packet.HEADER_SIZE));
+                  if (data.Length > (BUFFER_SIZE) - Packet.HEADER_SIZE) {
+                        int numPackets = (int) Math.Ceiling((double) data.Length / ((BUFFER_SIZE) - Packet.HEADER_SIZE));
                         int packetSize = (int) Math.Ceiling((double) data.Length / numPackets);
                         
                         int packetId = 0;
@@ -200,7 +200,7 @@ namespace ProtoIP
                         {
                               // If the packet buffer is full, add the packet to the list
                               if (i % packetSize == 0 && i != 0) {
-                                    this._packets[packetId] = new Packet(Common.Packet.Type.BYTES, packetId, packetDataSize, packetData);
+                                    this._packets[packetId] = new Packet((int)Packet.Type.BYTES, packetId, packetDataSize, packetData);
                                     packetId++;
                                     packetDataSize = 0;
                                     packetData = new byte[packetSize];
@@ -224,7 +224,7 @@ namespace ProtoIP
                   this.peerTransmitionStartSend();
                   if (this.peerAckReceive() == false) { return -1; }
 
-                  Stream.SendPackets(this._stream, this._packets);
+                  ProtoStream.SendPackets(this._stream, this._packets);
 
                   this.peerTransmitionEndSend();
 
@@ -246,7 +246,7 @@ namespace ProtoIP
                         return -1;
                   }
 
-                  this._packets = new Packet[Common.Network.MAX_PACKETS];
+                  this._packets = new Packet[Network.MAX_PACKETS];
 
                   this.peerTransmitionStartSend();
                   if (this.peerAckReceive() == false) { return -1; }
@@ -274,7 +274,7 @@ namespace ProtoIP
              * Receives data from the peer until the END_OF_TRANSMISSION packet is received
              */
             public int Receive() {
-                  this._packets = new Packet[Common.Network.MAX_PACKETS];
+                  this._packets = new Packet[Network.MAX_PACKETS];
 
                   if (this.peerTransmitionStartReceive() == false) { return -1; }
                   if (this.peerAckSend() == false) { return -1; }
@@ -287,7 +287,7 @@ namespace ProtoIP
 
                         Packet packet = Packet.Deserialize(this._buffer);
 
-                        if (packet._GetType() == Common.Packet.Type.END_OF_TRANSMISSION) {
+                        if (packet._GetType() == (int)Packet.Type.EOT) {
                               break;
                         }
 
