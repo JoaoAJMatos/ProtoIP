@@ -27,8 +27,8 @@ namespace ProtoIP
 
                   // Network connection object
                   public struct Connection {
-                        public TcpClient client;
-                        public NetworkStream stream;
+                        TcpClient client;
+                        NetworkStream stream;
                   }
 
                   // Connect to a host and return a connection object
