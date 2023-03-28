@@ -44,7 +44,7 @@ The `.dll` file will be located inside the `build` folder.
 
 ## Documentation
 
-The documentation is available [here](https://protoip.readthedocs.io/en/latest/).
+The documentation is available [here](https://joaoajmatos.github.io/ProtoIP/#/).
 
 ## Examples
 
