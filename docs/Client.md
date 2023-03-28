@@ -6,7 +6,7 @@ It can be used to implement more **complex Client definitions** to be used in yo
 
 ## Members
 
-- `_serverConnection` - [Network.Connection]()
+- `_serverConnection` - [Network.Connection](NetWorkConnections.md)
 - `_protoStream` - [ProtoStream](ProtoStream.md)
 
 ## Methods

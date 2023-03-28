@@ -74,10 +74,21 @@ These definitions serve as boilerplate for the user to use when creating their o
 ```csharp
 using ProtoIP;
 
-class Program {
-      static void Main() {
+class Program 
+{
+      // Define your own packet types to implement
+      // your own protocols
+      private const int HELLO_PACKET = 1;
+
+      static void Main() 
+      {
             // Create a new packet
-            Packet packet = new Packet(1, 0, 5, "Hello World!");
+            Packet packet = new Packet(HELLO_PACKET);
+            packet.SetData("Hello World!");
+
+            // Or:
+            // 
+            // Packet packet = new Packet(HELLO_PACKET, 0, 12, "Hello World!");
 
             // Serialize the packet
             // You can send this buffer over the network and deserialize it on the other end
@@ -87,7 +98,7 @@ class Program {
             Packet deserializedPacket = new Packet().Deserialize(serializedPacket);
 
             // Get the packet's payload
-            string payload = deserializedPacket.GetDataAsString();
+            string payload = deserializedPacket.GetDataAs<string>();
       }
 }
 ```
