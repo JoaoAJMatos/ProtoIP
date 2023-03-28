@@ -133,12 +133,33 @@ namespace ProtoIP
             public int _GetType() { return this._type; }
             public int _GetId() { return this._id; }
             public int _GetDataSize() { return this._dataSize; }
-            public byte[] _GetData() { return this._data; }
+
+            // Returns the payload of the packet as the given data type
+            public T GetDataAs<T>()
+            {
+                  switch (typeof(T).Name)
+                  {
+                        case "String":
+                              return (T)Convert.ChangeType(Encoding.ASCII.GetString(this._data), typeof(T));
+                        case "Int32":
+                              return (T)Convert.ChangeType(BitConverter.ToInt32(this._data, 0), typeof(T));
+                        case "Int64":
+                              return (T)Convert.ChangeType(BitConverter.ToInt64(this._data, 0), typeof(T));
+                        case "UInt32":
+                              return (T)Convert.ChangeType(BitConverter.ToUInt32(this._data, 0), typeof(T));
+                        case "UInt64":
+                              return (T)Convert.ChangeType(BitConverter.ToUInt64(this._data, 0), typeof(T));
+                        case "Byte[]":
+                              return (T)Convert.ChangeType(this._data, typeof(T));
+                        default:
+                              return (T)Convert.ChangeType(this._data, typeof(T));
+                  }
+            }
 
             public void _SetType(Type type) { this._type = (int)type; }
             public void _SetId(int id) { this._id = id; }
             public void _SetDataSize(int dataSize) { this._dataSize = dataSize; }
-            public void _SetData(byte[] data) { this._data = data; this._dataSize = data.Length; }
-            public void _SetData(string data) { this._data = Encoding.ASCII.GetBytes(data); this._dataSize = data.Length; }
+            public void SetPayload(byte[] data) { this._data = data; this._dataSize = data.Length; }
+            public void SetPayload(string data) { this._data = Encoding.ASCII.GetBytes(data); this._dataSize = data.Length; }
       }
 }

@@ -138,7 +138,7 @@ namespace ProtoIP
                   byte[] data = new byte[dataLength];
 
                   for (int i = 0; i < this._packets.Length; i++) {
-                        Array.Copy(this._packets[i]._GetData(), 0, data, dataPointer, this._packets[i]._GetDataSize());
+                        Array.Copy(this._packets[i].GetDataAs<byte[]>(), 0, data, dataPointer, this._packets[i]._GetDataSize());
                         dataPointer += this._packets[i]._GetDataSize();
                   }
 
