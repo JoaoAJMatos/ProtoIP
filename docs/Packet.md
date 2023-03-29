@@ -61,12 +61,19 @@ These definitions serve as boilerplate for the user to use when creating their o
 - `void SetPayload(byte[] data)` - Sets the packet's payload to the given byte array and updates `_dataSize`.
 - `void SetPayload(string data)` - Sets the packet's payload to the given string and updates `_dataSize`.
 
-> Getters
+> Getting data from packets
+
+To get the data of a packet payload, you can use the `GetDataAs<T>()` method:
 
 - `T GetDataAs<T>()` - Returns the packet's payload as the given type.
-- `int _GetId()` - Returns the packet's id.
-- `int _GetType()` - Returns the packet's type.
-- `int _GetDataSize()` - Returns the packet's payload size.
+
+For example, if you want to get the packet data as a `string`, you would do: `packet.GetDataAs<string>()`.
+
+> Debugging
+
+When learning how packets and protocol definitions work, it might be useful to take a closer look on what packets look like under the hood. **ProtoIP** lets you take a peek at what's going on inside the packets:
+
+- `static void ByteDump(Packet packet)` - Shows you the contents of the packet in a formatted manner.
 
 ## Example
 

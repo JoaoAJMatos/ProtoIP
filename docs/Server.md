@@ -17,13 +17,12 @@ Users can inherit this class to implement their own **server definitions** to be
 
 ### Public functions
 
-> Starting the server
+> Starting and stopping the server
 
 To start listening and accepting connections from clients, use the `Start()` method:
 
 - `Start(int port)` - Starts the main server loop.
-
-Once a client connects, the virtual method `OnClientConnect()` will be executed in a separate thread (see [server events](#virtual-functions)).
+- `Stop()` - Stops the server.
 
 > Sending and Receiving data
 
@@ -52,11 +51,11 @@ class ComplexServer : ProtoServer
       public override void OnRequest(int userID)
       {
             // Get the data from the ProtoStream and deserialize the packet
-            byte[] data = _protoStreamArrayClients[userID].GetDataAs<byte[]>();
+            byte[] data = _clients[userID].GetDataAs<byte[]>();
             Packet receivedPacket = Packet.Deserialize(data);
 
             // Respond to PING packets
-            if (receivedPacket._GetType() == Packet.Type.PING)
+            if (receivedPacket._GetType() == (int)Packet.Type.PING)
             {
                   Packet packet = new Packet(Packet.Type.PONG);
                   Send(packet.Serialize(), userID);
