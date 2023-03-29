@@ -8,8 +8,8 @@ namespace ProtoIP
 {
       public class ProtoClient
       {
-            private Common.Network.Connection _serverConnection;
-            private ProtoIP.ProtoStream _protoStream;
+            protected Common.Network.Connection _serverConnection;
+            protected ProtoStream _protoStream;
 
             public ProtoClient() {}
 

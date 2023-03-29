@@ -10,7 +10,7 @@ namespace ProtoIP
             // Default packet types for the ProtoIP library
             public enum Type
             {
-                  ACK,
+                  ACK = 1,
                   HANDSHAKE_REQ,
                   HANDSHAKE_RES,
                   PUBLIC_KEY,
@@ -63,7 +63,7 @@ namespace ProtoIP
                   this._type = type;
                   this._id = 0;
                   this._dataSize = 0;
-                  this._data = null;
+                  this._data = new byte[0];
             }
 
             public Packet(string stringData)
@@ -127,6 +127,65 @@ namespace ProtoIP
                   packet._data = data;
 
                   return packet;
+            }
+
+            // Shows the packet in the console
+            static public void ByteDump(Packet packet)
+            {
+                  byte[] buffer = Serialize(packet);
+                  int type = BitConverter.ToInt32(buffer, 0);
+                  int id = BitConverter.ToInt32(buffer, 4);
+                  int dataSize = BitConverter.ToInt32(buffer, 8);
+
+                  // Show the header of the packet
+                  Console.WriteLine("┌HEADERS");
+
+                  // Show the type
+                  Console.Write("├Type: ");
+                  for (int i = 0; i < 4; i++) { Console.Write(buffer[i].ToString("X2") + " "); }
+                  Console.Write("(" + type + " - ProtoIP Packet Mapping - " + (Type)type + ")");
+                  Console.WriteLine();
+
+                  // Show the ID
+                  Console.Write("├ID: ");
+                  for (int i = 4; i < 8; i++) { Console.Write(buffer[i].ToString("X2") + " "); }
+                  Console.Write("(" + id + ")");
+                  Console.WriteLine();
+
+                  // Show the data size
+                  Console.Write("├Data Size: ");
+                  for (int i = 8; i < 12; i++) { Console.Write(buffer[i].ToString("X2") + " "); }
+                  Console.WriteLine("(" + dataSize + ")");
+                  Console.WriteLine("│");
+
+
+                  // Show the body of the packet
+                  Console.WriteLine("├PAYLOAD: ");
+                  Console.Write("└Data: ");
+
+                  if (dataSize == 0) 
+                  { 
+                        Console.WriteLine("No payload"); 
+                  }
+                  else
+                  {
+                        for (int i = 0; i < dataSize; i++)
+                        {
+                              if (i % 16 == 0 && i != 0) { Console.WriteLine(); Console.Write("   "); }
+                              Console.Write(buffer[i + 12].ToString("X2") + " ");
+                        }
+
+
+                        // Show in string format
+                        Console.Write("('");
+                        for (int i = 0; i < dataSize; i++)
+                        {
+                              Console.Write((char)buffer[i + 12]);
+                        }
+                        Console.Write("') ");
+                        Console.Write("( + " + (BUFFER_SIZE - dataSize) + " bytes of padding)");
+                        Console.WriteLine();
+                  }
             }
 
             /* GETTERS & SETTERS */
