@@ -69,6 +69,14 @@ namespace ProtoIP
                   this._data = new byte[0];
             }
 
+            public Packet(Type type)
+            {
+                  this._type = (int)type;
+                  this._id = 0;
+                  this._dataSize = 0;
+                  this._data = new byte[0];
+            }
+
             public Packet(string stringData)
             {
                   this._type = (int)Type.BYTES;
