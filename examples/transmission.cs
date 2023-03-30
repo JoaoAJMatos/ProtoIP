@@ -15,7 +15,7 @@ class Program {
             NetworkStream stream = client.GetStream();
 
             // Create a new Stream object
-            ProtoIP.ProtoStream _protoStream = new Stream(stream);
+            ProtoStream _protoStream = new ProtoStream(stream);
 
             // Transmit a string over the network
             _protoStream.Transmit("Hello World!");

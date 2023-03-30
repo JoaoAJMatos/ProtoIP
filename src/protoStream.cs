@@ -50,7 +50,7 @@ namespace ProtoIP
 
             private bool peerAckSend()
             {
-                  Packet packet = new Packet((int)Packet.Type.ACK);
+                  Packet packet = new Packet(Packet.Type.ACK);
 
                   this._buffer = Packet.Serialize(packet);
                   if (this.TryWrite(this._buffer) < BUFFER_SIZE)
@@ -64,7 +64,7 @@ namespace ProtoIP
 
             private bool peerTransmitionStartSend()
             {
-                  this._buffer = Packet.Serialize(new Packet((int)Packet.Type.SOT, 0, 0, ""));
+                  this._buffer = Packet.Serialize(new Packet(Packet.Type.SOT));
                   if (this.TryWrite(this._buffer) < BUFFER_SIZE)
                   {
                         this._LastError = "Failed to send the START_OF_TRANSMISSION packet";
@@ -95,7 +95,7 @@ namespace ProtoIP
 
             private bool peerTransmitionEndSend()
             {
-                  this._buffer = Packet.Serialize(new Packet((int)Packet.Type.EOT, 0, 0, ""));
+                  this._buffer = Packet.Serialize(new Packet(Packet.Type.EOT));
                   if (this.TryWrite(this._buffer) < BUFFER_SIZE)
                   {
                         this._LastError = "Failed to send the END_OF_TRANSMISSION packet";
@@ -239,13 +239,13 @@ namespace ProtoIP
                               byte[] packetData = new byte[packetDataSize];
                               Array.Copy(data, i * packetSize, packetData, 0, packetDataSize);
 
-                              this._packets.Add(new Packet((int)Packet.Type.BYTES, i, packetDataSize, packetData));
+                              this._packets.Add(new Packet(Packet.Type.BYTES, i, packetDataSize, packetData));
                         }
                   }
                   else
                   {
                         this._packets = new List<Packet>();
-                        this._packets.Add(new Packet((int)Packet.Type.BYTES, 0, data.Length, data));
+                        this._packets.Add(new Packet(Packet.Type.BYTES, 0, data.Length, data));
                   }
             }
 
@@ -331,7 +331,6 @@ namespace ProtoIP
 
                         Packet packet = Packet.Deserialize(this._buffer);
 
-                        // Break if we receive the EOT packet
                         if (packet._GetType() == (int)Packet.Type.EOT) { break; }
 
                         this._packets.Add(packet);

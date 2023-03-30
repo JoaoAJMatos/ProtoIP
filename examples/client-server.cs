@@ -38,7 +38,7 @@ class ComplexServer : ProtoServer
             if (receivedPacket._GetType() == (int)Packet.Type.PING)
             {
                   Console.WriteLine("SERVER: Received PING packet, sending PONG!");
-                  Packet packet = new Packet((int)Packet.Type.PONG);
+                  Packet packet = new Packet(Packet.Type.PONG);
                   Send(Packet.Serialize(packet), userID);
             }
       }
@@ -60,7 +60,7 @@ class Program
             client.Connect("127.0.0.1", PORT);
 
             // Serialize the packet and send it
-            Packet packet = new Packet((int)Packet.Type.PING);
+            Packet packet = new Packet(Packet.Type.PING);
             client.Send(Packet.Serialize(packet));
 
             // Receive the response from the server
