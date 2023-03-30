@@ -45,6 +45,7 @@ These definitions serve as boilerplate for the user to use when creating their o
 
 - `Packet()`
 - `Packet(int type)` - Creates a Packet with a given type and the default packet id of `0`.
+- `Packet(Type type)` - Creates a Packet with a given default ProtoIP packet type.
 - `Packet(int type, int id, int dataSize, byte[] data)`
 - `Packet(int type, int id, int dataSize, string data)`
 - `Packet(string data)` - This method will automatically convert the string to bytes and assign it to the packet's payload with the default packet type of `BYTES`.
