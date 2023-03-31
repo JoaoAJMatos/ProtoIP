@@ -61,6 +61,14 @@ namespace ProtoIP
                   this._data = Encoding.ASCII.GetBytes(data);
             }
 
+            public Packet(Type type, int id, int dataSize, byte[] data)
+            {
+                  this._type = (int)type;
+                  this._id = id;
+                  this._dataSize = dataSize;
+                  this._data = data;
+            }
+
             public Packet(int type)
             {
                   this._type = type;
