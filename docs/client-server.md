@@ -15,7 +15,7 @@ class PingPongServer : ProtoServer
 }
 ```
 
-Next, we can define **our own server logic** by overriding ProtoServer's virtual functions. These functions are called when specific events are triggered on the server. For example, **when a client connects**, or **when the server receives a request**. You can check out more on that [here](Server.md/#virtual-functions).
+Next, we can define **our own server logic** by overriding ProtoServer's virtual functions. These functions are called when specific events are triggered on the server. For example, **when a client connects**, or **when the server receives a request**. You can check out more on that [here](Server.md).
 
 For now, we can override the `OnRequest` method, and check if the incoming packet is a **ping** request.
 

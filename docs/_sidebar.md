@@ -5,7 +5,5 @@
   - [ProtoClient](./Client.md)
   - [ProtoP2P](./Peer.md)
   - [ProtoCrypto](./Crypto.md)
-    - [ProtoUtils](./Utils.md)
-    - [ProtoUtils](./Utils.md)
 - Tutorials
   - [Client-Server Application](client-server.md) 
