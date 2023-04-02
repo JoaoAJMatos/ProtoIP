@@ -28,17 +28,30 @@ namespace ProtoIP
             public ProtoStream(List<Packet> packets, NetworkStream stream) { this._packets = packets; this._stream = stream; }
 
             /* PRIVATE METHODS & HELPER FUNCTIONS */
-            private bool peerAckReceive()
+
+            /*
+             * Tries to read from the stream to construct a packet
+             * Returns the deserialized packet
+             */
+            private Packet receivePacket()
             {
                   this._buffer = new byte[BUFFER_SIZE];
                   if (this.TryRead(this._buffer) < BUFFER_SIZE)
                   {
-                        this._LastError = "Failed to receive the ACK packet";
-                        return false;
+                        this._LastError = "Failed to receive the packet";
+                        return null;
                   }
 
-                  Packet packet = Packet.Deserialize(this._buffer);
+                  return Packet.Deserialize(this._buffer);
+            }
 
+            /*
+             * Receives an ACK packet from the peer
+             * Returns true if the packet was received successfully, false otherwise
+             */
+            private bool peerAckReceive()
+            {
+                  Packet packet = this.receivePacket();
                   if (packet._GetType() != (int)Packet.Type.ACK)
                   {
                         this._LastError = "Invalid packet type";
@@ -48,6 +61,10 @@ namespace ProtoIP
                   return true;
             }
 
+            /*
+            * Sends the ACK packet to the peer
+            * Returns true if the packet was sent successfully, false otherwise
+            */
             private bool peerAckSend()
             {
                   Packet packet = new Packet(Packet.Type.ACK);
@@ -62,6 +79,10 @@ namespace ProtoIP
                   return true;
             }
 
+            /*
+            * Sends the SOT packet to the peer
+            * Returns true if the packet was sent successfully, false otherwise
+            */
             private bool peerTransmitionStartSend()
             {
                   this._buffer = Packet.Serialize(new Packet(Packet.Type.SOT));
@@ -74,16 +95,13 @@ namespace ProtoIP
                   return true;
             }
 
+            /*
+            * Receives the SOT packet from the peer
+            * Returns true if the packet was received successfully, false otherwise
+            */
             private bool peerTransmitionStartReceive()
             {
-                  this._buffer = new byte[BUFFER_SIZE];
-                  if (this.TryRead(this._buffer) < BUFFER_SIZE)
-                  {
-                        this._LastError = "Failed to receive the START_OF_TRANSMISSION packet";
-                        return false;
-                  }
-
-                  Packet packet = Packet.Deserialize(this._buffer);
+                  Packet packet = this.receivePacket();
                   if (packet._GetType() != (int)Packet.Type.SOT)
                   {
                         this._LastError = "Invalid packet type";
@@ -93,6 +111,10 @@ namespace ProtoIP
                   return true;
             }
 
+            /*
+            * Sends the EOT packet to the peer
+            * Returns true if the packet was sent successfully, false otherwise
+            */
             private bool peerTransmitionEndSend()
             {
                   this._buffer = Packet.Serialize(new Packet(Packet.Type.EOT));
@@ -105,16 +127,13 @@ namespace ProtoIP
                   return true;
             }
 
+            /*
+            * Receives the EOT packet from the peer
+            * Returns true if the packet was received successfully, false otherwise
+            */
             private bool peerTransmitionEndReceive()
             {
-                  this._buffer = new byte[BUFFER_SIZE];
-                  if (this.TryRead(this._buffer) < BUFFER_SIZE)
-                  {
-                        this._LastError = "Failed to receive the END_OF_TRANSMISSION packet";
-                        return false;
-                  }
-
-                  Packet packet = Packet.Deserialize(this._buffer);
+                  Packet packet = this.receivePacket();
                   if (packet._GetType() != (int)Packet.Type.EOT)
                   {
                         this._LastError = "Invalid packet type";
@@ -124,18 +143,102 @@ namespace ProtoIP
                   return true;
             }
 
+            /*
+            * Sends a REPEAT packet with the missing packet IDs to the peer
+            */
+            private bool peerMissingPacketsRequestResend(List<int> missingPackets)
+            {
+                  Packet packet = new Packet(Packet.Type.REPEAT);
+
+                  byte[] payload = new byte[missingPackets.Count * sizeof(int)];
+                  Buffer.BlockCopy(missingPackets.ToArray(), 0, payload, 0, payload.Length);
+
+                  packet.SetPayload(payload);
+                  this._buffer = Packet.Serialize(packet);
+
+                  if (this.TryWrite(this._buffer) < BUFFER_SIZE)
+                  {
+                        this._LastError = "Failed to send the REPEAT packet";
+                        return false;
+                  }
+
+                  return true;
+            }
+
+            /*
+            * Receives the REPEAT packet from the requesting peer
+            * Returns the missing packet IDs
+            */
+            private List<int> peerReceiveRepeatRequestPayload()
+            {
+                  Packet packet = this.receivePacket();
+                  if (packet._GetType() != (int)Packet.Type.REPEAT)
+                  {
+                        this._LastError = "Invalid packet type";
+                        return null;
+                  }
+
+                  byte[] payload = packet.GetDataAs<byte[]>();
+                  int[] missingPackets = new int[payload.Length / sizeof(int)];
+                  Buffer.BlockCopy(payload, 0, missingPackets, 0, payload.Length);
+
+                  return new List<int>(missingPackets);
+            }
+
+            /*
+            * Resends the missing packets to the peer
+            */
+            private bool peerResendMissingPackets(List<int> packetIDs)
+            {
+                  for (int i = 0; i < packetIDs.Count; i++)
+                  {
+                        this._buffer = Packet.Serialize(this._packets[packetIDs[i]]);
+                        if (this.TryWrite(this._buffer) < BUFFER_SIZE)
+                        {
+                              this._LastError = "Failed to send the packet " + packetIDs[i];
+                              return false;
+                        }
+                  }
+
+                  return true;
+            }
+
+            /*
+            * Receives the missing packets from the peer and adds them to the packet List
+            */
+            private bool peerReceiveMissingPackets(int packetCount)
+            {
+                  for (int i = 0; i < packetCount; i++)
+                  {
+                        this._buffer = new byte[BUFFER_SIZE];
+                        if (this.TryRead(this._buffer) < BUFFER_SIZE)
+                        {
+                              this._LastError = "Failed to receive the packet " + i;
+                              return false;
+                        }
+
+                        Packet packet = Packet.Deserialize(this._buffer);
+                        this._packets.Add(packet);
+                  }
+
+                  return true;
+            }
+
+            /*
+             * Validate the packet List
+             *
+             * Check if there are any null packets or if there are any ID jumps
+             */
             private bool ValidatePackets()
             {
                   for (int i = 0; i < this._packets.Count; i++)
                   {
-                        // If the packet is null, return an error
                         if (this._packets[i] == null)
                         {
                               this._LastError = "Packet " + i + " is null";
                               return false;
                         }
 
-                        // If the packet id is not the same as the index, return an error
                         if (this._packets[i]._GetId() != i)
                         {
                               this._LastError = "Packet " + i + " has an invalid id (Expected: " + i + ", Actual: " + this._packets[i]._GetId() + ")";
@@ -147,7 +250,35 @@ namespace ProtoIP
             }
 
             /*
+             * Returns a list with the missing packet IDs
+             *
+             * Check for any ID jumps, if there is an ID jump, add the missing IDs to the list
+             */
+            private List<int> GetMissingPacketIDs()
+            {
+                  List<int> missingPackets = new List<int>();
+                  int lastId = 0;
+
+                  foreach (Packet packet in this._packets)
+                  {
+                        if (packet._GetId() - lastId > 1)
+                        {
+                              for (int i = lastId + 1; i < packet._GetId(); i++)
+                              {
+                                    missingPackets.Add(i);
+                              }
+                        }
+
+                        lastId = packet._GetId();
+                  }
+
+                  return missingPackets;
+            }
+
+            /*
              * Orders the packets by id and assembles the data buffer
+             *
+             * Allocates a buffer with the total length of the data and copies the data from the packets to the buffer
              */
             private int Assemble()
             {
@@ -158,12 +289,10 @@ namespace ProtoIP
                         return -1;
                   }
 
-                  // Get the total length of the data and create the buffer
                   int dataLength = 0;
                   for (int i = 0; i < this._packets.Count; i++) { dataLength += this._packets[i].GetDataAs<byte[]>().Length; }
                   byte[] data = new byte[dataLength];
 
-                  // Copy the data from the packets to the buffer
                   int dataOffset = 0;
                   for (int i = 0; i < this._packets.Count; i++)
                   {
@@ -172,7 +301,6 @@ namespace ProtoIP
                         dataOffset += packetData.Length;
                   }
 
-                  // Set the buffer and return
                   this._buffer = data;
                   return 0;
             }
@@ -223,7 +351,7 @@ namespace ProtoIP
             }
 
             /*
-             * Partitions the data into packets and adds them to the list
+             * Partitions the data into packets and adds them to the Packet list
              */
             private void Partition(byte[] data)
             {
@@ -253,10 +381,17 @@ namespace ProtoIP
             /*
              * Transmits the data to the peer
              *
-             * If the data passed is bigger than the buffer size, it will be split into packets.
+             * Ensures that the peer is ready to receive the data.
+             * Partitions the data into packets and sends them to the peer.
+             * Waits for the peer to acknowledge the data.
+             * Allows the peer to request missing packets until all the data
+             * has been received or the maximum number of tries has been reached.
              */
             public int Transmit(byte[] data)
             {
+                  bool peerHasAcknowledged = false;
+                  int tries = Network.MAX_TRIES;
+
                   this.Partition(data);
 
                   this.peerTransmitionStartSend();
@@ -266,7 +401,24 @@ namespace ProtoIP
 
                   this.peerTransmitionEndSend();
 
-                  if (this.peerAckReceive() == false) { return -1; }
+                  while (!peerHasAcknowledged && tries > 0)
+                  {
+                        Packet response = this.receivePacket();
+                        if (response == null) { return -1; }
+
+                        if (response._GetType() == (int)Packet.Type.REPEAT)
+                        {
+                              List<int> missingPacketIDs = this.peerReceiveRepeatRequestPayload();
+                              if (missingPacketIDs != null) { this.peerResendMissingPackets(missingPacketIDs); }
+                              else { return -1; }
+                        }
+                        else if (response._GetType() == (int)Packet.Type.ACK)
+                        {
+                              peerHasAcknowledged = true;
+                        }
+
+                        tries--;
+                  }
 
                   this._packets = new List<Packet>();
                   return 0;
@@ -280,7 +432,7 @@ namespace ProtoIP
                   return this.Transmit(Encoding.ASCII.GetBytes(data));
             }
 
-            // Transmit a file
+            // TODO: Remove this
             public int Transmit(FileInfo file)
             {
                   if (!file.Exists)
@@ -292,13 +444,10 @@ namespace ProtoIP
                   this.peerTransmitionStartSend();
                   if (this.peerAckReceive() == false) { return -1; }
 
-                  // Send the file name
                   this.Transmit(Encoding.ASCII.GetBytes(file.Name));
 
-                  // Send the file size
                   this.Transmit(Encoding.ASCII.GetBytes(file.Length.ToString()));
 
-                  // Send the file data
                   using (FileStream fs = file.OpenRead())
                   {
                         byte[] data = new byte[fs.Length];
@@ -313,17 +462,15 @@ namespace ProtoIP
             }
 
             /*
-             * Receives data from the peer until the END_OF_TRANSMISSION packet is received
+             * Receives data from the peer until the EOT packet is received
              */
             public int Receive()
             {
-                  if (this.peerTransmitionStartReceive() == false) { 
-                        return -1; 
-                  }
+                  bool dataFullyReceived = false;
+                  int tries = Network.MAX_TRIES;
 
-                  if (this.peerAckSend() == false) { 
-                        return -1; 
-                  }
+                  if (this.peerTransmitionStartReceive() == false) { return -1; }
+                  if (this.peerAckSend() == false) { return -1; }
 
                   while (true)
                   {
@@ -336,7 +483,23 @@ namespace ProtoIP
                         this._packets.Add(packet);
                   }
 
-                  if (this.peerAckSend() == false) { return -1; }
+                  while (!dataFullyReceived && tries > 0)
+                  {
+                        List<int> missingPacketIDs = GetMissingPacketIDs();
+                        if (missingPacketIDs.Count > 0)
+                        {
+                              this.peerMissingPacketsRequestResend(missingPacketIDs);
+                              this.peerReceiveMissingPackets(missingPacketIDs.Count);
+                        }
+                        else
+                        {
+                              if (this.peerAckSend() == false) { return -1; }
+                              dataFullyReceived = true;
+                        }
+
+                        tries--;
+                  }
+
                   return 0;
             }
 
