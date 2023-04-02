@@ -432,35 +432,6 @@ namespace ProtoIP
                   return this.Transmit(Encoding.ASCII.GetBytes(data));
             }
 
-            // TODO: Remove this
-            public int Transmit(FileInfo file)
-            {
-                  if (!file.Exists)
-                  {
-                        this._LastError = "File does not exist";
-                        return -1;
-                  }
-
-                  this.peerTransmitionStartSend();
-                  if (this.peerAckReceive() == false) { return -1; }
-
-                  this.Transmit(Encoding.ASCII.GetBytes(file.Name));
-
-                  this.Transmit(Encoding.ASCII.GetBytes(file.Length.ToString()));
-
-                  using (FileStream fs = file.OpenRead())
-                  {
-                        byte[] data = new byte[fs.Length];
-                        fs.Read(data, 0, data.Length);
-                        this.Transmit(data);
-                  }
-
-                  this.peerTransmitionEndSend();
-
-                  if (this.peerAckReceive() == false) { return -1; }
-                  return 0;
-            }
-
             /*
              * Receives data from the peer until the EOT packet is received
              */
