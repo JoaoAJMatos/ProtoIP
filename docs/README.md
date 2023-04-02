@@ -1,4 +1,4 @@
-# ProtoIP <small>0.9.0</small>
+# ProtoIP <small>9.0.0</small>
 
 > From students to students - Instituto Politécnico de Leiria - [ESTG](https://www.ipleiria.pt/estg/)
 
