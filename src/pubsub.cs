@@ -31,7 +31,7 @@ namespace ProtoIP
       }
 
       // Subscriber class that implements the Subscribe and Unsubscribe methods.
-      class Subscriber
+      public class Subscriber
       {
             private readonly IMessageBroker _messageBroker;
 
@@ -53,7 +53,7 @@ namespace ProtoIP
 
       // Implementation of the IMessageBroker interface that manages
       // the subscriptions and publishes messages to the subscribers.
-      class PubSub : IMessageBroker
+      public class PubSub : IMessageBroker
       {
             private readonly Dictionary<string, List<Action<object>>> _subscriptions = new Dictionary<string, List<Action<object>>>();
 
