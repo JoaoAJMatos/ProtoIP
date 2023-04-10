@@ -22,7 +22,7 @@ class Program {
             NetworkStream stream = client.GetStream();
 
             // Send the packet over the network
-            stream.Write(serializedPacket, 0, serializedPacket.Length);
+            stream.Write(serializedPacket, 0, serializedPacket.Length);            
       }
 }
 
