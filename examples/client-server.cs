@@ -46,10 +46,10 @@ class ComplexServer : ProtoServer
 
 class Program
 {
-      const int PORT = 1234;
-
       static void Main()
       {
+            int PORT = ProtoIP.Common.Network.GetRandomUnusedPort();
+
             // Create the server and start it
             ComplexServer server = new ComplexServer();
             Thread serverThread = new Thread(() => server.Start(PORT));
