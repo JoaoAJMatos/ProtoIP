@@ -2,6 +2,7 @@
 // Check the end of the file for extended copyright notice.
 
 using System;
+using System.Collections.Generic;
 
 namespace ProtoIP
 {

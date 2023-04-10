@@ -2,6 +2,8 @@
 // Check the end of the file for extended copyright notice.
 
 using System.Net.Sockets;
+using System.Net;
+
 namespace ProtoIP
 {
       namespace Common 

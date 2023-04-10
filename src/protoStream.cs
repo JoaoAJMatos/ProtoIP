@@ -20,7 +20,7 @@ namespace ProtoIP
             private List<Packet> _packets = new List<Packet>();
             private byte[] _buffer;
             private string _LastError;
-
+            
             /* CONSTRUCTORS */
             public ProtoStream() { }
             public ProtoStream(NetworkStream stream) { this._stream = stream; }
@@ -202,7 +202,7 @@ namespace ProtoIP
 
                   return true;
             }
-
+ 
             /*
             * Receives the missing packets from the peer and adds them to the packet List
             */
