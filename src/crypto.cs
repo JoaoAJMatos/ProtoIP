@@ -165,13 +165,23 @@ namespace ProtoIP
                   }
 
                   // Encrypt a byte array using the public key
-                  public byte[] Encrypt(byte[] data)
+                  public static byte[] Encrypt(byte[] data, byte[] publicKey)
                   {
+                        byte[] modulus = new byte[128];
+                        byte[] exponent = new byte[3];
+                        Buffer.BlockCopy(publicKey, 0, modulus, 0, 128);
+                        Buffer.BlockCopy(publicKey, 128, exponent, 0, 3);
+
                         using (var rsa = new RSACryptoServiceProvider())
                         {
-                              rsa.ImportParameters(_publicKey);
+                              var rsaParams = new RSAParameters
+                              {
+                                    Modulus = modulus,
+                                    Exponent = exponent
+                              };
+                              rsa.ImportParameters(rsaParams);
                               return rsa.Encrypt(data, false);
-                        }
+                        }     
                   }
 
                   // Decrypt a byte array using the private key
