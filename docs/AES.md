@@ -61,3 +61,38 @@ class Program
       }
 }
 ```
+
+To use AES in a **real world application**, you can use the `ExportKey()` and `ImportKey()` methods to exchange the AES key with other parties.
+
+```csharp
+
+using ProtoIP;
+
+class Program
+{
+      static void Main()
+      {
+            // Create a new AES instance
+            AES aes = new AES();
+      
+            // Generate a new AES key
+            aes.GenerateKey();
+      
+            // Export the AES key, you can then send this to the other party
+            byte[] exportedKey = aes._key;
+      
+            // The data to encrypt
+            byte[] data = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
+      
+            // Encrypt the data
+            byte[] encryptedData = aes.Encrypt(data);
+      
+            // The other party receives the key and creates a new AES instance
+            AES aes2 = new AES(exportedKey);
+
+            // Decrypt the data using the exported key
+            byte[] decryptedData = aes2.Decrypt(encryptedData);
+      }
+}
+
+```
