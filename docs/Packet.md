@@ -1,4 +1,4 @@
-# ProtoPacket
+# Packet
 
 Packets provide the user with **low level access to protocol definitions**, similar to **ProtocolSI**. Allowing you to manipulate the contents of the packets such as the **headers** or the **payload**.
 
