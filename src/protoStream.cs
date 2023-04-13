@@ -389,35 +389,29 @@ namespace ProtoIP
              */
             public int Transmit(byte[] data)
             {
-                  bool peerHasAcknowledged = false;
-                  int tries = Network.MAX_TRIES;
-
                   this.Partition(data);
 
                   this.peerSendSot();
                   if (this.peerReceiveAck() == false) { return -1; }
-
                   ProtoStream.SendPackets(this._stream, this._packets);
-
                   this.peerSendEot();
 
-                  while (!peerHasAcknowledged && tries > 0)
+                  int tries = 0;
+
+                  while (tries < Network.MAX_TRIES)
                   {
                         Packet response = this.receivePacket();
                         if (response == null) { return -1; }
-
-                        if (response._GetType() == (int)Packet.Type.REPEAT)
+                        if (response._GetType() == (int)Packet.Type.ACK) { break; }
+                        
+                        else if (response._GetType() == (int)Packet.Type.REPEAT)
                         {
                               List<int> missingPacketIDs = this.peerReceiveRepeat();
-                              if (missingPacketIDs != null) { this.peerResendMissingPackets(missingPacketIDs); }
+                              if (missingPacketIDs.Any()) { this.peerResendMissingPackets(missingPacketIDs); }
                               else { return -1; }
                         }
-                        else if (response._GetType() == (int)Packet.Type.ACK)
-                        {
-                              peerHasAcknowledged = true;
-                        }
 
-                        tries--;
+                        tries++;
                   }
 
                   this._packets = new List<Packet>();
