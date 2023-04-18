@@ -10,7 +10,7 @@ namespace ProtoIP
       // to be used with the NetPods.
       public class UDP 
       {
-            public const int TCP_HEADER_LENGTH = 8;
+            public const int UDP_HEADER_LENGTH = 8;
 
             // HEADER
             public ushort _sourcePort      { get; private set; }

@@ -5,19 +5,19 @@ using System;
 using System.Net;
 
 namespace ProtoIP
-{
-      // IP protocol packet types.
-      public enum IPProtocolPacketType
-      {
-            ICMP = 1,
-            TCP = 6,
-            UDP = 17
-      }
-
+{  
       // Provides an interface for creating and manipulating IP packets
       // to be used with the NetPods.
       public class IP
       {
+            // IP protocol packet types.
+            public enum IPProtocolPacketType
+            {
+                  ICMP = 1,
+                  TCP = 6,
+                  UDP = 17
+            }
+
             private const int IP_HEADER_LENGTH = 20;
             private const int IPV4 = 4;
             private const int IPV6 = 6;
