@@ -27,6 +27,8 @@ namespace ProtoIP
                   AddressMaskReply = 18
             }
 
+            public const int ICMP_HEADER_LENGTH = 20;
+
             // ICMP headers
             public byte _type { get; private set; }
             public byte _code { get; private set; }
@@ -50,6 +52,8 @@ namespace ProtoIP
             // Deserializes a byte Array into an ICMP packet
             public static ICMP Deserialize(byte[] packet)
             {
+                  if (packet.Length < ICMP_HEADER_LENGTH) { return null; }
+
                   ICMP icmp = new ICMP();
                   icmp._type = packet[0];
                   icmp._code = packet[1];

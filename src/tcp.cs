@@ -56,29 +56,13 @@ namespace ProtoIP
                   Array.Copy(_options, 0, packet, 20, _options.Length);
                   Array.Copy(_payload, 0, packet, TCP_HEADER_LENGTH, _payload.Length);
                   return packet;
-
-                  /*byte[] packet = new byte[IP.IP_HEADER_LENGTH + _payload.Length];
-                  packet[0] = (byte)((_version << 4) + _headerLength);
-                  packet[1] = _typeOfService;
-                  packet[2] = (byte)(_totalLength >> 8);
-                  packet[3] = (byte)(_totalLength & 0xFF);
-                  packet[4] = (byte)(_identification >> 8);
-                  packet[5] = (byte)(_identification & 0xFF);
-                  packet[6] = (byte)((_flags << 5) + _fragmentOffset);
-                  packet[7] = (byte)(_fragmentOffset & 0xFF);
-                  packet[8] = _timeToLive;
-                  packet[9] = _protocol;
-                  packet[10] = (byte)(_headerChecksum >> 8);
-                  packet[11] = (byte)(_headerChecksum & 0xFF);
-                  Array.Copy(_sourceAddress.GetAddressBytes(), 0, packet, 12, 4);
-                  Array.Copy(_destinationAddress.GetAddressBytes(), 0, packet, 16, 4);
-                  Array.Copy(_payload, 0, packet, IP.IP_HEADER_LENGTH, _payload.Length);
-                  return packet;*/
             }
 
             // Deserializes a byte Array into a TCP packet
             public static TCP Deserialize(byte[] packet)
             {
+                  if (packet.Length < TCP_HEADER_LENGTH) { return null; }
+
                   TCP tcp = new TCP();
                   tcp._sourcePort = (ushort)((packet[0] << 8) + packet[1]);
                   tcp._destinationPort = (ushort)((packet[2] << 8) + packet[3]);
@@ -95,23 +79,6 @@ namespace ProtoIP
                   tcp._payload = new byte[packet.Length - tcp._dataOffset];
                   Array.Copy(packet, tcp._dataOffset, tcp._payload, 0, tcp._payload.Length);
                   return tcp;
-
-                  /*TCP tcp = new TCP();
-                  tcp._sourcePort = (ushort)((packet[0] << 8) + packet[1]);
-                  tcp._destinationPort = (ushort)((packet[2] << 8) + packet[3]);
-                  tcp._sequenceNumber = (int)((packet[4] << 24) + (packet[5] << 16) + (packet[6] << 8) + packet[7]);
-                  tcp._acknowledgementNumber = (int)((packet[8] << 24) + (packet[9] << 16) + (packet[10] << 8) + packet[11]);
-                  tcp._dataOffset = (ushort)((packet[12] >> 4) + packet[13]);
-                  tcp._reserved = (ushort)((packet[12] << 4) + packet[13]);
-                  tcp._flags = (ushort)((packet[14] << 8) + packet[15]);
-                  tcp._windowSize = (ushort)((packet[16] << 8) + packet[17]);
-                  tcp._checksum = (ushort)((packet[18] << 8) + packet[19]);
-                  tcp._urgentPointer = (ushort)((packet[20] << 8) + packet[21]);
-                  tcp._options = new byte[tcp._dataOffset - 20];
-                  Array.Copy(packet, 22, tcp._options, 0, tcp._dataOffset - 20);
-                  tcp._payload = new byte[packet.Length - tcp._dataOffset];
-                  Array.Copy(packet, tcp._dataOffset, tcp._payload, 0, packet.Length - tcp._dataOffset);
-                  return tcp;*/
             }
 
             /* OPERATOR OVERLOADS */

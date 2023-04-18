@@ -18,9 +18,9 @@ namespace ProtoIP
       // to be used with the NetPods.
       public class IP
       {
-            public const int IP_HEADER_LENGTH = 20;
-            public const int IPV4 = 4;
-            public const int IPV6 = 6;
+            private const int IP_HEADER_LENGTH = 20;
+            private const int IPV4 = 4;
+            private const int IPV6 = 6;
 
             // Headers
             public byte _version { get; private set; }
@@ -64,6 +64,8 @@ namespace ProtoIP
             // Deserializes a byte Array and returns an IP object
             public static IP Deserialize(byte[] packet)
             {
+                  if (packet.Length < IP_HEADER_LENGTH) { return null; }
+
                   IP ip = new IP();
                   ip._version = (byte)(packet[0] >> 4);
                   ip._headerLength = (byte)(packet[0] & 0x0F);
@@ -81,7 +83,7 @@ namespace ProtoIP
                   Array.Copy(packet, IP_HEADER_LENGTH, ip._payload, 0, ip._totalLength - IP_HEADER_LENGTH);
                   return ip;
             }
-            
+
             /* OPERATOR OVERLOADS */
             //
             // Operator overload for the / operator.
@@ -111,7 +113,7 @@ namespace ProtoIP
                   ip._protocol = (byte)IPProtocolPacketType.ICMP;
                   byte[] icmpSerializedData = icmp.Serialize();
                   return ip / icmpSerializedData;
-            }
+            }            
 
             // Returns a string representation of the IP packet.
             public override string ToString()

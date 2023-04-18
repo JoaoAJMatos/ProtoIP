@@ -81,9 +81,50 @@ namespace ProtoIP
 
             // Disassembles the NetPod from a byte array.
             // This byte array can be received from a raw socket.
-            private void Disassemble()
+            private void Disassemble(byte[] data)
             {
 
+            }
+
+            /* OPERATOR OVERLOADS */
+            //
+            // Operator overload for the = operator.
+            //
+            // This allows you to assign layers to the netpod.
+            // By assigning an Ethernet object to the NetPod the
+            // NetPod will have an Ethernet layer, as well as all of the
+            // subsequent layers encapsulated in the Ethernet layer.
+            public static void operator = (NetPod pod, Ethernet ethernet)
+            {
+                  byte[] etherPayload = ethernet._payload;
+                  var deserializedIPPacket = IP.Deserialize(etherPayload);
+                  
+                  // If the deserializedIPPacket is null,
+                  // then the payload is not an IP packet.
+                  if (deserializedIPPacket == null) { return; }
+
+                  // Assign the basic layers to the pod.
+                  pod._ethernet = ethernet;
+                  pod._ip = deserializedIPPacket;
+
+                  byte[] ipPayload = deserializedIPPacket._payload;
+                  
+                  // Deserialize the payload according to the protocol.
+                  switch (deserializedIPPacket._protocol)
+                  {
+                        case IP.IPProtocolPacketType.TCP:
+                              var deserializedTCPPacket = TCP.Deserialize(ipPayload);
+                              if (deserializedTCPPacket != null) { pod._tcp = deserializedTCPPacket; }
+                              break;
+                        case IP.IPProtocolPacketType.UDP:
+                              var deserializedUDPPacket = UDP.Deserialize(ipPayload);
+                              if (deserializedUDPPacket != null) { pod._udp = deserializedUDPPacket; }
+                              break;
+                        case IP.IPProtocolPacketType.ICMP:
+                              var deserializedICMPPacket = ICMP.Deserialize(ipPayload);
+                              if (deserializedICMPPacket != null) { pod._icmp = deserializedICMPPacket; }
+                              break;
+                  }          
             }
       }
 }

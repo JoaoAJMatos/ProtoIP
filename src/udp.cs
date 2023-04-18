@@ -10,6 +10,8 @@ namespace ProtoIP
       // to be used with the NetPods.
       public class UDP 
       {
+            public const int TCP_HEADER_LENGTH = 8;
+
             // HEADER
             public ushort _sourcePort      { get; private set; }
             public ushort _destinationPort { get; private set; }
@@ -34,6 +36,8 @@ namespace ProtoIP
             // Deserializes a byte array into a UDP packet.
             public static UDP Deserialize(byte[] serialized)
             {
+                  if (serialized.Length < UDP_HEADER_LENGTH) { return null; }
+
                   UDP udp = new UDP();
                   udp._sourcePort = BitConverter.ToUInt16(serialized, 0);
                   udp._destinationPort = BitConverter.ToUInt16(serialized, 2);
