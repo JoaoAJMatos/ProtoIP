@@ -13,13 +13,13 @@ namespace ProtoIP
             public const int UDP_HEADER_LENGTH = 8;
 
             // HEADER
-            public ushort _sourcePort      { get; private set; }
-            public ushort _destinationPort { get; private set; }
-            public ushort _length          { get; private set; }
-            public ushort _checksum        { get; private set; }
+            public ushort _sourcePort      { get; set; }
+            public ushort _destinationPort { get; set; }
+            public ushort _length          { get; set; }
+            public ushort _checksum        { get; set; }
 
             // PAYLOAD
-            public byte[] _data   { get; private set; }
+            public byte[] _payload   { get; set; }
 
             // Serializes the UDP packet into a byte array.
             public byte[] Serialize()
@@ -29,7 +29,7 @@ namespace ProtoIP
                   Array.Copy(BitConverter.GetBytes(_destinationPort), 0, serialized, 2, 2);
                   Array.Copy(BitConverter.GetBytes(_length), 0, serialized, 4, 2);
                   Array.Copy(BitConverter.GetBytes(_checksum), 0, serialized, 6, 2);
-                  Array.Copy(_data, 0, serialized, 8, _data.Length);
+                  Array.Copy(_payload, 0, serialized, 8, _payload.Length);
                   return serialized;
             }
 
@@ -43,26 +43,11 @@ namespace ProtoIP
                   udp._destinationPort = BitConverter.ToUInt16(serialized, 2);
                   udp._length = BitConverter.ToUInt16(serialized, 4);
                   udp._checksum = BitConverter.ToUInt16(serialized, 6);
-                  udp._data = new byte[udp._length - 8];
-                  Array.Copy(serialized, 8, udp._data, 0, udp._length - 8);
+                  udp._payload = new byte[udp._length - 8];
+                  Array.Copy(serialized, 8, udp._payload, 0, udp._length - 8);
                   return udp;
             }
-            
-            /* OPERATOR OVERLOADS */
-            //
-            // Operator overload for the / operator.
-            // Similar to scapy's Ether() / IP() / TCP() syntax.
-            // You can use it as a composition packet builder.
-            //
-            // Add raw data to the payload of a UDP packet
-            // using the composition operator.
-            public static UDP operator / (UDP udp, byte[] data)
-            {
-                  udp._data = data;
-                  udp._length = (ushort)(8 + data.Length);
-                  return udp;
-            }
-
+             
             public override string ToString()
             {
                   return $"### [UDP] ###\n" +
@@ -70,7 +55,7 @@ namespace ProtoIP
                          $"Destination Port: {_destinationPort}\n" +
                          $"Length: {_length}\n" +
                          $"Checksum: {_checksum}\n" +
-                         $"Data: {_data}\n";
+                         $"Payload: {_payload}\n";
             } 
       }
 }

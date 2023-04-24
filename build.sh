@@ -8,9 +8,9 @@ while true; do
             mcs -target:library -out:build/protoip.dll /reference:System.Numerics.dll src/*.cs
             break
       elif [ $choice -eq 2 ]; then
-            read -p "Enter the name of the example program: " example
+            read -p "Enter the name of the example program (without file extension): " example
             mcs -out:build/$example.exe /reference:System.Numerics.dll /reference:build/protoip.dll examples/$example.cs
-            mono build/$example.exe
+            sudo mono build/$example.exe
             break
       else
             echo "Invalid choice"

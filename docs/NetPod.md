@@ -6,37 +6,54 @@
 
 > You can think of **NetPods** as a network packet laboratory, where you can create your own packets and experiment with them.
 
-## Implementation
+Additionaly, you can take advantage of the freedom that **NetPods** offer in terms of low level access to packets in order to create your own **Cyber-Security tools**. Such as **packet sniffers**, **packet injectors**, **arp spoofers**, and many more. Checkout [this]() example on how to implement a **Man-In-The-Middle attack** using **NetPods**.
 
-NetPods were inspired by [Scapy](https://scapy.net/), a tool for packet manipulation written in Python.
+## Members
 
-Similar to Scapy, NetPods make it easy to create and manipulate packets from different network layers in a simple and easy to use interface.
+The member variables in the NetPod class store the relevant information for each network layer, containing an instance to an object of the corresponding network layer class.
 
-By layering different network abstraction layers on top of each other, you are able to forge your own packets from scratch, or manipulate existing packets to your liking.
+- `Ethernet ethernet` - The Ethernet layer.
+- `ARP arp` - The ARP layer.
+- `IP ip` - The IP layer.
+- `TCP tcp` - The TCP layer.
+- `UDP udp` - The UDP layer.
+- `ICMP icmp` - The ICMP layer.
+
+### Creating Network Layers
+
+ProtoIP offers a variety of default network layer implementations that you can use to create your own NetPods. Like `Ethernet`, `ARP`, `IP`, `TCP`, `UDP` and `ICMP`.
+
+You can checkout the documentation for each of these implementations here:
+
+- [Ethernet](./Ethernet.md)
+- [ARP](./ARP.md)
+- [IP](./IP.md)
+- [TCP](./TCP.md)
+- [UDP](./UDP.md)
+- [ICMP](./ICMP.md)
 
 ## Methods
 
 ### Constructors
 
 - `NetPod()` - Creates a new NetPod object.
+- `NetPod(Ethernet ethLayer)` - Creates a new NetPod object with an Ethernet layer and all the subsequent encapsulated layers inside it.
 
 ### Public functions
 
-> Network layer manipulation
-
-You can add and remove network layers from the NetPod using the following methods:
-
-- `void AddLayer(NetworkLayer layer)` - Adds a network layer to the NetPod.
-
-- `void RemoveLayer(NetworkLayer layer)` - Removes a network layer from the NetPod.
-
 > Packet transmission
 
-To send and receive packets over the socket, you can use the following methods:
+To send packets over the raw socket, you can use the following method:
 
-- `void SendPacket(Packet packet)` - Sends a packet over the socket.
+- `static void Send(NetPod pod)` - Assembles the NetPod and sends the bytes over the socket.
 
-- `Packet ReceivePacket()` - Receives a packet from the socket.
+> Packet sniffing
+
+Packet sniffing is a technique whereby packet data flowing across the network is detected and observed, just like in [Wireshark](https://www.wireshark.org/).
+
+To **sniff** packets on a given network interface you can use the following method:
+
+- `static void Sniff(string interface, Action<NetPod> callback)` - Listens for packets on a given network interface and calls the callback function with the received NetPod. If no interface is passed, the default interface will be used.
 
 > Visualization
 
@@ -44,23 +61,7 @@ In order to visualize the structure of the NetPod, you can use the following met
 
 - `static void ShowStructure(NetPod netPod)` - Shows the structure of the NetPod.
 
-## Usage
-
-### Creating Network Layers
-
-ProtoIP offers a variety of default network layer implementations that you can use to create your own NetPods. Like `Ethernet`, `IP`, `TCP`, `UDP` and `ICMP`.
-
-You can checkout the documentation for each of these implementations here:
-
-- [Ethernet](./Ethernet.md)
-- [IP](./IP.md)
-- [TCP](./TCP.md)
-- [UDP](./UDP.md)
-- [ICMP](./ICMP.md)
-
-You can also create your own network layer implementations by inheriting from the `NetworkLayer` class.
-
-### Creating NetPods
+### Example
 
 After creating your network layers, you can instantiate a new `NetPod` object and add your network layers to it in order to create a structure like so: `Ethernet >> IP >> TCP >> ... Your Layer`.
 
@@ -72,19 +73,27 @@ class Program
       static void Main() 
       {
             // Create the network layers
-            Ethernet ethernet = new Ethernet(SourceMAC: "00:00:00:00:00:00", DestinationMAC: "ff:ff:ff:ff:ff:ff");
+            Ethernet ethernet = new Ethernet(sourceMAC: "00:00:00:00:00:00", destinationMAC: "ff:ff:ff:ff:ff:ff");
             IP ip = new IP(sourceIP: "127.0.0.1", destinationIP: "127.0.0.1");
-            TCP tcp = new TCP(sourcePort: 80, destinationPort: 80)
+            TCP tcp = new TCP(sourcePort: 80, destinationPort: 80);
 
-            // Create a new NetPod
-            NetPod pod = new NetPod();
+            // Create a new NetPod and layer the 
+            // network abstractions using the 
+            // composition operator ("/")
+            NetPod pod = new NetPod(ethernet / ip / tcp);
 
-            // Add the layers to the NetPod 
-            // using the composition operator
-            pod = ethernet / ip / tcp;
+            // Define a callback function to be triggered 
+            // when a packet is received
+            Action<NetPod> action = (NetPod receivedPod) => {
+                  NetPod.ShowStructure(receivedPod);
+            };
 
-            // Show the NetPod structure
-            NetPod.ShowStructure(pod);
+            // Sniff packets on the given interface
+            Thread receiveThread = new Thread(() => { NetPod.Sniff("lo0", action); });
+            receiveThread.Start();
+
+            // Send the NetPod over the socket
+            NetPod.Send(pod);
       }
 }
 ```

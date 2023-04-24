@@ -30,12 +30,12 @@ namespace ProtoIP
             public const int ICMP_HEADER_LENGTH = 20;
 
             // ICMP headers
-            public byte _type { get; private set; }
-            public byte _code { get; private set; }
-            public ushort _checksum { get; private set; }
+            public byte _type { get; set; }
+            public byte _code { get; set; }
+            public ushort _checksum { get; set; }
 
             // ICMP payload
-            public byte[] _payload { get; private set; }
+            public byte[] _payload { get; set; }
 
             // Serializes the packet and returns it as a byte Array
             public byte[] Serialize()
@@ -62,23 +62,7 @@ namespace ProtoIP
                   Array.Copy(packet, 4, icmp._payload, 0, packet.Length - 4);
                   return icmp;
             }
-
-
-            /* OPERATOR OVERLOADS */
-            //
-            // Operator overload for the / operator.
-            // Similar to scapy's Ether() / IP() / TCP() syntax.
-            // You can use it as a composition packet builder.
-            //
-            // Add raw data to the payload of an ICMP packet
-            // using the composition operator.
-            public static ICMP operator / (ICMP icmp, byte[] data)
-            {
-                  icmp._payload = data;
-                  return icmp;
-            }
-
-
+ 
             public override string ToString()
             {
                   return $"### [ICMP] ###\n" +

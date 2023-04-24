@@ -10,10 +10,26 @@
 
 - **ProtoStream**: Send and receive large chunks of data in a single function call.
 - **Packet Manipulation**: Low level access to packets and protocol definitions.
-- **Protocol Definition**: Define your own protocols and use them in your application.
-- **Cryptography**: Send and receive encrypted data using **RSA** or **AES**.
-- **Client-Server Definitions**: Basic definitions for client-server applications.
+- **Protocol Definition**: Define your own protocols and use them in your applications using higher level Packet abstractions.
+- **Cryptography**: Send and receive encrypted data using symmetric and asymmetric encryption.
+- **Client-Server**: Implement your client-server application logic with events.
 - **Peer-to-Peer**: Basic definitions for peer-to-peer applications.
+- **PubSub**: Pub/Seb messaging pattern through a simple API.
+- **Utilities**: File system utilities, compression, and more.
+
+## Motivation
+
+In class I noticed that most students were struggling to grasp the concepts of network programming and cryptography the way they were being taught in class. We often had to spend a lot of time writing boilerplate code and implementing everything from scratch.
+
+This was a huge waste of time and energy, and it was also very frustrating for the students; as the codebase was often very messy, filled with comments and hard to understand.
+
+Furthermore, we were provided with a library (*ProtocolSI*) with archaic documentation and a very limited set of features. In the end, we would end up with the same messy codebase, but this time, with an extra abstraction layer; which unexpectedly made things even worse.
+
+To combat this, I decided to implement my own library with the sole purpose of providing an easy to understand, easy to use, and self-documenting codebase for students to use in their projects.
+
+Hiding the complexity of the underlying protocols and communication security with high-level abstractions, while still providing low-level access to the actual packets and protocol definitions.
+
+**ProtoIP** is not just a library, it's a tool that will hopefully guide you through the journey of **Network Programming**.
 
 ## Official Remote Repository
 

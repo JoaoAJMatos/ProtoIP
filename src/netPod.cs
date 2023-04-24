@@ -9,9 +9,10 @@ namespace ProtoIP
 {
       // NetPods implement an abstraction for sending and receiving data over a raw socket.
       // This allows you to create and manipulate raw packets from all kinds of network layers.
-      class NetPod
+      public class NetPod
       {
             private Ethernet _ethernet;
+            private ARP _arp;
             private IP _ip;
             private UDP _udp;
             private TCP _tcp;
@@ -21,95 +22,61 @@ namespace ProtoIP
             public NetPod()
             {
                   _ethernet = new Ethernet();
+                  _arp = new ARP();
                   _ip = new IP();
                   _udp = new UDP();
                   _tcp = new TCP();
                   _icmp = new ICMP();
             }
-
-            // Removes the layer with the given type from the NetPod.
-            public void RemoveLayer<TLayer>() 
+      
+            // Creates a new netpod object with an Ethernet layer and
+            // all the subsequent layers encapsulated inside it.
+            public NetPod(Ethernet ethernet)
             {
-                  if (typeof(TLayer) == typeof(Ethernet)) { _ethernet = null; }
-                  else if (typeof(TLayer) == typeof(IP)) { _ip = null; }
-                  else if (typeof(TLayer) == typeof(UDP)) { _udp = null; }
-                  else if (typeof(TLayer) == typeof(TCP)) { _tcp = null; }
-                  else if (typeof(TLayer) == typeof(ICMP)) { _icmp = null; }
-            }
-
-            // Returns the layer with the given type from the NetPod.
-            public TLayer GetLayer<TLayer>() 
-            {
-                  if (typeof(TLayer) == typeof(Ethernet)) { return (TLayer)(object)_ethernet; }
-                  else if (typeof(TLayer) == typeof(IP)) { return (TLayer)(object)_ip; }
-                  else if (typeof(TLayer) == typeof(UDP)) { return (TLayer)(object)_udp; }
-                  else if (typeof(TLayer) == typeof(TCP)) { return (TLayer)(object)_tcp; }
-                  else if (typeof(TLayer) == typeof(ICMP)) { return (TLayer)(object)_icmp; }
-                  else { return default(TLayer); }
+                  if (ethernet._type == Ethernet.ETH_TYPE_IP) { ipDeserialization(ethernet, this); }
+                  else if (ethernet._type == Ethernet.ETH_TYPE_ARP) { arpDeserialization(ethernet, this); }
+                  else { throw new Exception("Unknown ethernet type."); } 
             }
 
             // Sends a NetPod over a raw socket.
             public static void Send(NetPod pod)
             {
-            
+                  byte[] data = Assemble(pod);
+                  Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Raw, ProtocolType.IP);
+                  IPEndPoint ipEndPoint = new IPEndPoint(pod._ip._destinationAddress, 0); 
+                  socket.SendTo(data, ipEndPoint);
             }
 
-            // Receives a NetPod from a raw socket.
-            public static void Receive(NetPod pod)
+            // Listens for every incomming packet on a Network Interface
+            // and calls the callback function with the NetPod as a parameter.
+            public static void Sniff(string networkInterface, Action<NetPod> callback)
             {
-
+                  Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Raw, ProtocolType.IP);
+                  socket.Bind(new IPEndPoint(IPAddress.Any, 0));
+                  socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.HeaderIncluded, true);
+                  byte[] data = new byte[4096];
+                  EndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                  while (true)
+                  {
+                        socket.ReceiveFrom(data, ref ipEndPoint);
+                        NetPod pod = NetPod.Disassemble(data);
+                        NetPod.ShowStructure(pod);
+                        callback(pod);
+                  }
             }
 
-            // Shows the netpod structure in a human-readable format.
-            public void ShowStructure()
+            // Deserializes an Ethernet frame and it's subsequent layers and assigns
+            // them to a netpod instance.
+            private static void ipDeserialization(Ethernet ethernet, NetPod pod)
             {
+                  var deserializedIPPacket = IP.Deserialize(ethernet._payload);
+                  byte[] ipPayload = deserializedIPPacket._payload;
 
-            }
+                  if (deserializedIPPacket == null) { return; }
 
-            // Shows the netpod structure in a hexdump format.
-            public void HexDump()
-            {
-
-            }
-
-            // Assembles the NetPod into a byte array.
-            // This byte array can be sent over a raw socket.
-            private void Assemble()
-            {
-
-            }
-
-            // Disassembles the NetPod from a byte array.
-            // This byte array can be received from a raw socket.
-            private void Disassemble(byte[] data)
-            {
-
-            }
-
-            /* OPERATOR OVERLOADS */
-            //
-            // Operator overload for the = operator.
-            //
-            // This allows you to assign layers to the netpod.
-            // By assigning an Ethernet object to the NetPod the
-            // NetPod will have an Ethernet layer, as well as all of the
-            // subsequent layers encapsulated in the Ethernet layer.
-            public static NetPod operator / (NetPod pod, Ethernet ethernet)
-            {
-                  byte[] etherPayload = ethernet._payload;
-                  var deserializedIPPacket = IP.Deserialize(etherPayload);
-                  
-                  // If the deserializedIPPacket is null,
-                  // then the payload is not an IP packet.
-                  if (deserializedIPPacket == null) { return pod; }
-
-                  // Assign the basic layers to the pod.
                   pod._ethernet = ethernet;
                   pod._ip = deserializedIPPacket;
 
-                  byte[] ipPayload = deserializedIPPacket._payload;
-                  
-                  // Deserialize the payload according to the protocol.
                   switch (deserializedIPPacket._protocol)
                   {
                         case (byte)IP.IPProtocolPacketType.TCP:
@@ -124,9 +91,58 @@ namespace ProtoIP
                               var deserializedICMPPacket = ICMP.Deserialize(ipPayload);
                               if (deserializedICMPPacket != null) { pod._icmp = deserializedICMPPacket; }
                               break;
-                  }          
+                  }
+            }
 
-                  return pod;
+            // Deserializes an Ethernet frame and the ARP packet inside it
+            // and assigns the objects to a netpod instance.
+            private static void arpDeserialization(Ethernet ethernet, NetPod pod)
+            {
+                  var deserializedARPPacket = ARP.Deserialize(ethernet._payload);
+                  if (deserializedARPPacket != null) { return; }
+
+                  pod._ethernet = ethernet;
+                  pod._arp = deserializedARPPacket;
+            }
+
+            // Assembles the NetPod into a byte array.
+            // This byte array can be sent over a raw socket.
+            private static byte[] Assemble(NetPod pod)
+            {
+                  byte[] data = pod._ethernet.Serialize();
+                  return data;
+            }
+
+            // Disassembles the NetPod from a byte array.
+            // This byte array can be received from a raw socket.
+            private static NetPod Disassemble(byte[] data)
+            {
+                  Ethernet ethernet = Ethernet.Deserialize(data);
+                  return new NetPod(ethernet);
+            }
+ 
+            // Shows the netpod structure in a human readable format.
+            public static void ShowStructure(NetPod pod)
+            {
+                  string header = "### [NetPod Structure] ###\n";
+                  string etherLayer = pod._ethernet.ToString();
+                  string ipLayer = pod._ip.ToString();
+                  string lastLayer = "";
+
+                  switch (pod._ip._protocol)
+                  {
+                        case (byte)IP.IPProtocolPacketType.TCP:
+                              lastLayer = pod._tcp.ToString();
+                              break;
+                        case (byte)IP.IPProtocolPacketType.UDP:
+                              lastLayer = pod._udp.ToString();
+                              break;
+                        case (byte)IP.IPProtocolPacketType.ICMP:
+                              lastLayer = pod._icmp.ToString();
+                              break;
+                  }
+
+                  Console.WriteLine(header + etherLayer + "\n" + ipLayer + "\n" + lastLayer);
             }
       }
 }

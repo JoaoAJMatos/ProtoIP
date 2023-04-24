@@ -11,16 +11,38 @@ namespace ProtoIP
       // to be used with the NetPods.
       public class Ethernet
       {
-            public readonly static int MAC_ADDRESS_LENGTH = 6;
-            public readonly static int ETH_HEADER_LENGTH = 14;
-            public readonly static int ETH_TYPE_IP = 0x0800;
-            public readonly static int ETH_TYPE_ARP = 0x0806;
-            public readonly static byte[] BROADCAST_MAC = Ethernet.GetMACAddressBytesFromString("FF:FF:FF:FF:FF:FF");
+            public const int MAC_ADDRESS_LENGTH = 6;
+            public const int ETH_HEADER_LENGTH = 14;
+            public const int ETH_TYPE_IP = 0x0800;
+            public const int ETH_TYPE_ARP = 0x0806;
+            public static readonly byte[] BROADCAST_MAC = Ethernet.GetMACAddressBytesFromString("FF:FF:FF:FF:FF:FF");
 
             public byte[] _destinationMAC { get; private set; }
             public byte[] _sourceMAC { get; private set; }
             public ushort _type { get; private set; }
             public byte[] _payload { get; private set; }
+
+            /* CONSTRUCTORS */
+            public Ethernet() 
+            {
+                  _type = ETH_TYPE_IP;
+            }
+
+            public Ethernet(string destinationMAC, string sourceMAC, ushort type = ETH_TYPE_IP, byte[] payload = null)
+            {
+                  _destinationMAC = GetMACAddressBytesFromString(destinationMAC);
+                  _sourceMAC = GetMACAddressBytesFromString(sourceMAC);
+                  _type = type;
+                  _payload = payload;
+            }
+
+            public Ethernet(byte[] destinationMAC, byte[] sourceMAC, ushort type = ETH_TYPE_IP, byte[] payload = null)
+            {
+                  _destinationMAC = destinationMAC;
+                  _sourceMAC = sourceMAC;
+                  _type = type;
+                  _payload = payload;
+            }
 
             // Serializes the packet and returns it as a byte Array
             public byte[] Serialize()
@@ -46,6 +68,9 @@ namespace ProtoIP
                   Array.Copy(packet, MAC_ADDRESS_LENGTH, ethernet._sourceMAC, 0, MAC_ADDRESS_LENGTH);
                   ethernet._type = (ushort)((packet[12] << 8) + packet[13]);
                   Array.Copy(packet, ETH_HEADER_LENGTH, ethernet._payload, 0, packet.Length - ETH_HEADER_LENGTH);
+
+                  Console.WriteLine(ethernet.ToString());
+
                   return ethernet;
             }
 
@@ -73,7 +98,13 @@ namespace ProtoIP
  
                   if (!ArpRequestWithWebClient(ipAddressString, macAddressBytes))
                   {
+                        Console.WriteLine("ARP request failed. Attempting to fetch MAC address from network interfaces.");
                         FetchNetworkInterfacesForIPAddress(ipAddressString, macAddressBytes);
+                  }
+
+                  if (macAddressBytes == null)
+                  {
+                        throw new Exception("Could not find MAC address for the specified IP address: " + ipAddressString + ".");
                   }
 
                   return macAddressBytes;
@@ -140,26 +171,163 @@ namespace ProtoIP
                   }
                   return macAddress;
             }
-
+ 
             /* OPERATOR OVERLOADS */
             //
             // Operator overload for the / operator.
             // Similar to scapy's Ether() / IP() / TCP() syntax.
             // You can use it as a composition packet builder.
             //
-            // Add raw data to the payload of an Ethernet frame
-            // using the composition operator.
+            // Add raw data to the payload of the last layer encapsulated
+            // in the ethernet frame.
             public static Ethernet operator / (Ethernet ethernet, byte[] data)
             {
-                  ethernet._payload = data;
+                  if (ethernet._payload == null)
+                  {
+                        ethernet._payload = data;
+                        return ethernet;
+                  }
+
+                  if (ethernet._type == Ethernet.ETH_TYPE_IP)
+                  {
+                        IP ipPacket = IP.Deserialize(ethernet._payload);
+                        if (ipPacket._payload == null)
+                        {
+                              ipPacket._payload = data;
+                              ethernet._payload = ipPacket.Serialize();
+                              return ethernet;
+                        }
+
+                        switch (ipPacket._protocol)
+                        {
+                              case (byte)IP.IPProtocolPacketType.TCP:
+                                    TCP tcpPacket = TCP.Deserialize(ipPacket._payload);
+                                    tcpPacket._payload = data;
+                                    ipPacket._payload = tcpPacket.Serialize();
+                                    ethernet._payload = ipPacket.Serialize();
+                                    break;
+                              case (byte)IP.IPProtocolPacketType.UDP:
+                                    UDP udpPacket = UDP.Deserialize(ipPacket._payload);
+                                    udpPacket._payload = data;
+                                    ipPacket._payload = udpPacket.Serialize();
+                                    ethernet._payload = ipPacket.Serialize();
+                                    break;
+                              case (byte)IP.IPProtocolPacketType.ICMP:
+                                    ICMP icmpPacket = ICMP.Deserialize(ipPacket._payload);
+                                    icmpPacket._payload = data;
+                                    ipPacket._payload = icmpPacket.Serialize();
+                                    ethernet._payload = ipPacket.Serialize();
+                                    break;
+                        }
+                  }
+                  else if (ethernet._type == Ethernet.ETH_TYPE_ARP)
+                  {
+                        throw new Exception("Cannot add raw data to an ARP packet as it does not contain a payload buffer.");
+                  }
+
                   return ethernet;
             }
 
-            // Encapsulate an IP packet inside an Ethernet frame
+            // Encapsulate an IP packet inside an Ethernet frame.
+            //
+            // If the ethernet layer doesn't have a source & destination MAC address,
+            // fetch the MAC address from the given source & destination IP
+            // and assign it to the ethernet layer.
+            //
+            // ETH / IP
             public static Ethernet operator / (Ethernet ethernet, IP ipPacket)
             {
-                  byte[] payload = ipPacket.Serialize();
-                  return ethernet / payload;
+                  if (ethernet._destinationMAC == null)
+                  {
+                        byte[] ipBytes = ipPacket._destinationAddress.GetAddressBytes();
+                        string ip = $"{ipBytes[0]}.{ipBytes[1]}.{ipBytes[2]}.{ipBytes[3]}";
+                        ethernet._destinationMAC = GetMACAddressBytesFromIP(ip);
+                  }
+
+                  if (ethernet._sourceMAC == null)
+                  {
+                        byte[] ipBytes = ipPacket._sourceAddress.GetAddressBytes();
+                        string ip = $"{ipBytes[0]}.{ipBytes[1]}.{ipBytes[2]}.{ipBytes[3]}";
+                        ethernet._sourceMAC = GetMACAddressBytesFromIP(ip);
+                  }
+
+                  ethernet._type = Ethernet.ETH_TYPE_IP;
+                  ethernet._payload = ipPacket.Serialize();
+                  return ethernet;
+            }
+
+            // Encapsulate an ARP packet inside an Ethernet frame.
+            //
+            // If the ethernet layer doesn't have a source & destination MAC address,
+            // the destination MAC address is set to the broadcast MAC address, and the
+            // source MAC address is fetched from the given source IP address.
+            //
+            // ETH / ARP
+            public static Ethernet operator / (Ethernet ethernet, ARP arpPacket)
+            {
+                  if (ethernet._destinationMAC == null || ethernet._destinationMAC != BROADCAST_MAC) 
+                  { 
+                        ethernet._destinationMAC = BROADCAST_MAC; 
+                  }
+
+                  if (ethernet._sourceMAC == null)
+                  {
+                        byte[] ipBytes = arpPacket._senderProtocolAddress;
+                        string ip = $"{ipBytes[0]}.{ipBytes[1]}.{ipBytes[2]}.{ipBytes[3]}";
+                        ethernet._sourceMAC = GetMACAddressBytesFromIP(ip);
+                  }
+
+                  ethernet._type = Ethernet.ETH_TYPE_ARP;
+                  ethernet._payload = arpPacket.Serialize();
+                  return ethernet;
+            }
+
+            // Encapsulate a TCP packet inside an IP packet inside an Ethernet frame.
+            // ETH / IP / TCP
+            public static Ethernet operator / (Ethernet ethernet, TCP tcpPacket)
+            {
+                  if (ethernet._payload == null || ethernet._payload.Length < IP.IP_HEADER_LENGTH)
+                  {
+                        throw new Exception("Unable to add TCP layer because the ethernet layer doesn't have a valid IP packet");
+                  }
+
+                  IP ipPacket = IP.Deserialize(ethernet._payload);
+                  ipPacket._protocol = (byte)IP.IPProtocolPacketType.TCP;
+                  ipPacket._payload = tcpPacket.Serialize();
+                  ethernet._payload = ipPacket.Serialize();
+                  return ethernet;
+            }
+
+            // Encapsulate a UDP packet inside an IP packet inside an Ethernet frame.
+            // ETH / IP / UDP
+            public static Ethernet operator / (Ethernet ethernet, UDP udpPacket)
+            {
+                  if (ethernet._payload == null || ethernet._payload.Length < IP.IP_HEADER_LENGTH)
+                  {
+                        throw new Exception("Unable to add UDP layer because the ethernet layer doesn't have a valid IP packet");
+                  }
+
+                  IP ipPacket = IP.Deserialize(ethernet._payload);
+                  ipPacket._protocol = (byte)IP.IPProtocolPacketType.UDP;
+                  ipPacket._payload = udpPacket.Serialize();
+                  ethernet._payload = ipPacket.Serialize();
+                  return ethernet;
+            }
+
+            // Encapsulate an ICMP packet inside an IP packet inside an Ethernet frame.
+            // ETH / IP / ICMP
+            public static Ethernet operator / (Ethernet ethernet, ICMP icmpPacket)
+            {
+                  if (ethernet._payload == null || ethernet._payload.Length < IP.IP_HEADER_LENGTH)
+                  {
+                        throw new Exception("Unable to add ICMP layer because the ethernet layer doesn't have a valid IP packet");
+                  }
+
+                  IP ipPacket = IP.Deserialize(ethernet._payload);
+                  ipPacket._protocol = (byte)IP.IPProtocolPacketType.ICMP;
+                  ipPacket._payload = icmpPacket.Serialize();
+                  ethernet._payload = ipPacket.Serialize();
+                  return ethernet;
             }
 
             public override string ToString()
@@ -167,7 +335,7 @@ namespace ProtoIP
                   return $"### [Ethernet] ###\n" +
                         $"Destination MAC: {MacAddressBytesToString(_destinationMAC)}\n" +
                         $"Source MAC: {MacAddressBytesToString(_sourceMAC)}\n" +
-                        $"Type: {(_type == ETH_TYPE_IP ? "IP" : "ARP")}\n";
+                        $"Type: {(_type == ETH_TYPE_IP ? "IP" : "ARP")}";
             }
       }
 }

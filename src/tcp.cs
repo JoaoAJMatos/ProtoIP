@@ -14,20 +14,39 @@ namespace ProtoIP
             public const int TCP_HEADER_LENGTH = 20;
 
             // Header
-            public ushort _sourcePort         { get; private set; }
-            public ushort _destinationPort    { get; private set; }
-            public int _sequenceNumber        { get; private set; }
-            public int _acknowledgementNumber { get; private set; }
-            public ushort _dataOffset         { get; private set; }
-            public ushort _reserved           { get; private set; }
-            public ushort _flags              { get; private set; }
-            public ushort _windowSize         { get; private set; }
-            public ushort _checksum           { get; private set; }
-            public ushort _urgentPointer      { get; private set; }
-            public byte[] _options            { get; private set; }
+            public ushort _sourcePort         { get; set; }
+            public ushort _destinationPort    { get; set; }
+            public int _sequenceNumber        { get; set; }
+            public int _acknowledgementNumber { get; set; }
+            public ushort _dataOffset         { get; set; }
+            public ushort _reserved           { get; set; }
+            public ushort _flags              { get; set; }
+            public ushort _windowSize         { get; set; }
+            public ushort _checksum           { get; set; }
+            public ushort _urgentPointer      { get; set; }
+            public byte[] _options            { get; set; }
 
             // Payload
-            public byte[] _payload { get; private set; }
+            public byte[] _payload { get; set; }
+
+            /* CONSTRUCTORS */
+            public TCP() { }
+
+            public TCP(ushort sourcePort, ushort destinationPort)
+            {
+                  _sourcePort = sourcePort;
+                  _destinationPort = destinationPort;
+                  _sequenceNumber = 0;
+                  _acknowledgementNumber = 0;
+                  _dataOffset = 5;
+                  _reserved = 0;
+                  _flags = 0;
+                  _windowSize = 0;
+                  _checksum = 0;
+                  _urgentPointer = 0;
+                  _options = new byte[0];
+                  _payload = new byte[0];
+            }
 
             // Serializes the packet and returns it as a byte Array
             public byte[] Serialize()
@@ -62,53 +81,39 @@ namespace ProtoIP
             public static TCP Deserialize(byte[] packet)
             {
                   if (packet.Length < TCP_HEADER_LENGTH) { return null; }
-
+                  
                   TCP tcp = new TCP();
                   tcp._sourcePort = (ushort)((packet[0] << 8) + packet[1]);
                   tcp._destinationPort = (ushort)((packet[2] << 8) + packet[3]);
-                  tcp._sequenceNumber = (int)((packet[4] << 24) + (packet[5] << 16) + (packet[6] << 8) + packet[7]);
-                  tcp._acknowledgementNumber = (int)((packet[8] << 24) + (packet[9] << 16) + (packet[10] << 8) + packet[11]);
-                  tcp._dataOffset = (ushort)((packet[12] >> 4) + packet[13]);
-                  tcp._reserved = (ushort)((packet[12] << 4) + packet[13]);
-                  tcp._flags = (ushort)((packet[14] << 8) + packet[15]);
-                  tcp._windowSize = (ushort)((packet[16] << 8) + packet[17]);
-                  tcp._checksum = (ushort)((packet[18] << 8) + packet[19]);
-                  tcp._urgentPointer = (ushort)((packet[20] << 8) + packet[21]);
-                  tcp._options = new byte[tcp._dataOffset - TCP_HEADER_LENGTH];
-                  Array.Copy(packet, 22, tcp._options, 0, tcp._options.Length);
-                  tcp._payload = new byte[packet.Length - tcp._dataOffset];
-                  Array.Copy(packet, tcp._dataOffset, tcp._payload, 0, tcp._payload.Length);
+                  tcp._sequenceNumber = (packet[4] << 24) + (packet[5] << 16) + (packet[6] << 8) + packet[7];
+                  tcp._acknowledgementNumber = (packet[8] << 24) + (packet[9] << 16) + (packet[10] << 8) + packet[11];
+                  tcp._dataOffset = (ushort)((packet[12] & 0xF0) >> 4);
+                  tcp._reserved = (ushort)(packet[12] & 0x0F);
+                  tcp._flags = packet[13];
+                  tcp._windowSize = (ushort)((packet[14] << 8) + packet[15]);
+                  tcp._checksum = (ushort)((packet[16] << 8) + packet[17]);
+                  tcp._urgentPointer = (ushort)((packet[18] << 8) + packet[19]);
+                  tcp._options = new byte[tcp._dataOffset * 4 - TCP_HEADER_LENGTH];
+                  Array.Copy(packet, 20, tcp._options, 0, tcp._options.Length);
+                  tcp._payload = new byte[packet.Length - tcp._dataOffset * 4];
+                  Array.Copy(packet, tcp._dataOffset * 4, tcp._payload, 0, tcp._payload.Length);
                   return tcp;
             }
-
-            /* OPERATOR OVERLOADS */
-            //
-            // Operator overload for the / operator.
-            // Similar to scapy's Ether() / IP() / TCP() syntax.
-            // You can use it as a composition packet builder.
-            //
-            // Add raw data to the payload of a TCP fragment
-            // using the composition operator.
-            public static TCP operator / (TCP tcp, byte[] payload)
-            {
-                  tcp._payload = payload;
-                  return tcp;
-            }
-
+ 
             public override string ToString()
             {
-                  return $"### [TCP] ###\n" +
-                        $"Source Port: {_sourcePort}\n" +
-                        $"Destination Port: {_destinationPort}\n" +
-                        $"Sequence Number: {_sequenceNumber}\n" +
-                        $"Acknowledgement Number: {_acknowledgementNumber}\n" +
-                        $"Data Offset: {_dataOffset}\n" +
-                        $"Reserved: {_reserved}\n" +
-                        $"Flags: {_flags}\n" +
-                        $"Window Size: {_windowSize}\n" +
-                        $"Checksum: {_checksum}\n" +
-                        $"Urgent Pointer: {_urgentPointer}\n" +
-                        $"Options: {_options}\n";
+                  return $"    ### [TCP] ###\n" +
+                         $"    Source Port: {_sourcePort}\n" +
+                         $"    Destination Port: {_destinationPort}\n" +
+                         $"    Sequence Number: {_sequenceNumber}\n" +
+                         $"    Acknowledgement Number: {_acknowledgementNumber}\n" +
+                         $"    Data Offset: {_dataOffset}\n" +
+                         $"    Reserved: {_reserved}\n" +
+                         $"    Flags: {_flags}\n" +
+                         $"    Window Size: {_windowSize}\n" +
+                         $"    Checksum: {_checksum}\n" +
+                         $"    Urgent Pointer: {_urgentPointer}\n" +
+                         $"    Options: {_options}";
             }
       }
 }

@@ -18,46 +18,79 @@ namespace ProtoIP
                   UDP = 17
             }
 
-            private const int IP_HEADER_LENGTH = 20;
-            private const int IPV4 = 4;
-            private const int IPV6 = 6;
+            public const int IP_HEADER_LENGTH = 20;
+            public const int IPV4 = 4;
+            public const int IPV6 = 6;
 
             // Headers
-            public byte _version { get; private set; }
-            public byte _headerLength { get; private set; }
-            public byte _typeOfService { get; private set; }
-            public ushort _totalLength { get; private set; }
-            public ushort _identification { get; private set; }
-            public ushort _flags { get; private set; }
-            public ushort _fragmentOffset { get; private set; }
-            public byte _timeToLive { get; private set; }
-            public byte _protocol { get; private set; }
-            public ushort _headerChecksum { get; private set; }
-            public IPAddress _sourceAddress { get; private set; }
-            public IPAddress _destinationAddress { get; private set; }
+            public byte _version { get; set; }
+            public byte _headerLength { get; set; }
+            public byte _typeOfService { get; set; }
+            public ushort _totalLength { get; set; }
+            public ushort _identification { get; set; }
+            public ushort _flags { get; set; }
+            public ushort _fragmentOffset { get; set; }
+            public byte _timeToLive { get; set; }
+            public byte _protocol { get; set; }
+            public ushort _headerChecksum { get; set; }
+            public IPAddress _sourceAddress { get; set; }
+            public IPAddress _destinationAddress { get; set; }
 
             // Payload
-            public byte[] _payload { get; private set; }
+            public byte[] _payload { get; set; }
+
+            /* CONSTRUCTORS */
+            public IP() { }
+
+            public IP(string sourceIP, string destinationIP)
+            {
+                  _version = IPV4;
+                  _headerLength = 5;
+                  _typeOfService = 0;
+                  _totalLength = IP_HEADER_LENGTH;
+                  _identification = 0;
+                  _flags = 0;
+                  _fragmentOffset = 0;
+                  _timeToLive = 64;
+                  _protocol = 0;
+                  _headerChecksum = 0;
+                  _sourceAddress = IPAddress.Parse(sourceIP);
+                  _destinationAddress = IPAddress.Parse(destinationIP);
+            }
 
             // Serializes the packet and returns it as a byte Array
             public byte[] Serialize()
             {
                   byte[] packet = new byte[IP_HEADER_LENGTH + _payload.Length];
-                  packet[0] = (byte)((_version << 4) + _headerLength);
+
+                  // Header
+                  packet[0] = (byte)((_version << 4) | _headerLength);
                   packet[1] = _typeOfService;
                   packet[2] = (byte)(_totalLength >> 8);
                   packet[3] = (byte)(_totalLength & 0xFF);
                   packet[4] = (byte)(_identification >> 8);
                   packet[5] = (byte)(_identification & 0xFF);
-                  packet[6] = (byte)((_flags << 5) + _fragmentOffset);
+                  packet[6] = (byte)((_flags << 5) | (_fragmentOffset >> 8));
                   packet[7] = (byte)(_fragmentOffset & 0xFF);
                   packet[8] = _timeToLive;
                   packet[9] = _protocol;
                   packet[10] = (byte)(_headerChecksum >> 8);
                   packet[11] = (byte)(_headerChecksum & 0xFF);
-                  Array.Copy(_sourceAddress.GetAddressBytes(), 0, packet, 12, 4);
-                  Array.Copy(_destinationAddress.GetAddressBytes(), 0, packet, 16, 4);
+
+                  byte[] sourceAddressBytes = _sourceAddress.GetAddressBytes();
+                  packet[12] = sourceAddressBytes[0];
+                  packet[13] = sourceAddressBytes[1];
+                  packet[14] = sourceAddressBytes[2];
+                  packet[15] = sourceAddressBytes[3];
+
+                  byte[] destinationAddressBytes = _destinationAddress.GetAddressBytes();
+                  packet[16] = destinationAddressBytes[0];
+                  packet[17] = destinationAddressBytes[1];
+                  packet[18] = destinationAddressBytes[2];
+                  packet[19] = destinationAddressBytes[3];
+
                   Array.Copy(_payload, 0, packet, IP_HEADER_LENGTH, _payload.Length);
+
                   return packet;
             }
 
@@ -67,70 +100,44 @@ namespace ProtoIP
                   if (packet.Length < IP_HEADER_LENGTH) { return null; }
 
                   IP ip = new IP();
+
+                  // Header
                   ip._version = (byte)(packet[0] >> 4);
                   ip._headerLength = (byte)(packet[0] & 0x0F);
                   ip._typeOfService = packet[1];
-                  ip._totalLength = (ushort)((packet[2] << 8) + packet[3]);
-                  ip._identification = (ushort)((packet[4] << 8) + packet[5]);
+                  ip._totalLength = (ushort)((packet[2] << 8) | packet[3]);
+                  ip._identification = (ushort)((packet[4] << 8) | packet[5]);
                   ip._flags = (ushort)(packet[6] >> 5);
-                  ip._fragmentOffset = (ushort)(((packet[6] & 0x1F) << 8) + packet[7]);
+                  ip._fragmentOffset = (ushort)(((packet[6] & 0x1F) << 8) | packet[7]);
                   ip._timeToLive = packet[8];
                   ip._protocol = packet[9];
-                  ip._headerChecksum = (ushort)((packet[10] << 8) + packet[11]);
+                  ip._headerChecksum = (ushort)((packet[10] << 8) | packet[11]);
                   ip._sourceAddress = new IPAddress(new byte[] { packet[12], packet[13], packet[14], packet[15] });
                   ip._destinationAddress = new IPAddress(new byte[] { packet[16], packet[17], packet[18], packet[19] });
+
+                  // Payload
                   ip._payload = new byte[ip._totalLength - IP_HEADER_LENGTH];
-                  Array.Copy(packet, IP_HEADER_LENGTH, ip._payload, 0, ip._totalLength - IP_HEADER_LENGTH);
+                  Array.Copy(packet, IP_HEADER_LENGTH, ip._payload, 0, ip._payload.Length);
+
                   return ip;
-            }
-
-            /* OPERATOR OVERLOADS */
-            //
-            // Operator overload for the / operator.
-            // Similar to scapy's Ether() / IP() / TCP() syntax.
-            // You can use it as a composition packet builder.
-            //
-            // Add raw data to the payload of an IP packet
-            // using the composition operator.
-            public static IP operator / (IP ip, byte[] data)
-            {
-                  ip._payload = data;
-                  ip._totalLength = (ushort)(IP_HEADER_LENGTH + ip._payload.Length);
-                  return ip;
-            }
-
-            // Encapsulate a TCP fragment into an IP packet.
-            public static IP operator / (IP ip, TCP tcp)
-            {
-                  ip._protocol = (byte)IPProtocolPacketType.TCP;
-                  byte[] tcpSerializedData = tcp.Serialize();
-                  return ip / tcpSerializedData;
-            }
-
-            // Encapsulate a UDP packet into an IP packet.
-            public static IP operator / (IP ip, ICMP icmp) 
-            {
-                  ip._protocol = (byte)IPProtocolPacketType.ICMP;
-                  byte[] icmpSerializedData = icmp.Serialize();
-                  return ip / icmpSerializedData;
-            }            
+            }             
 
             // Returns a string representation of the IP packet.
             public override string ToString()
             {
-                  return $"### [IP] ###\n" +
-                         $"\tVersion: {_version}\n" +
-                         $"\tHeader Length: {_headerLength}\n" +
-                         $"\tType of Service: {_typeOfService}\n" +
-                         $"\tTotal Length: {_totalLength}\n" +
-                         $"\tIdentification: {_identification}\n" +
-                         $"\tFlags: {_flags}\n" +
-                         $"\tFragment Offset: {_fragmentOffset}\n" +
-                         $"\tTime to Live: {_timeToLive}\n" +
-                         $"\tProtocol: {_protocol}\n" +
-                         $"\tHeader Checksum: {_headerChecksum}\n" +
-                         $"\tSource Address: {_sourceAddress}\n" +
-                         $"\tDestination Address: {_destinationAddress}\n";
+                  return $"  ### [IP] ###\n" +
+                         $"  Version: {_version}\n" +
+                         $"  Header Length: {_headerLength}\n" +
+                         $"  Type of Service: {_typeOfService}\n" +
+                         $"  Total Length: {_totalLength}\n" +
+                         $"  Identification: {_identification}\n" +
+                         $"  Flags: {_flags}\n" +
+                         $"  Fragment Offset: {_fragmentOffset}\n" +
+                         $"  Time to Live: {_timeToLive}\n" +
+                         $"  Protocol: {_protocol}\n" +
+                         $"  Header Checksum: {_headerChecksum}\n" +
+                         $"  Source Address: {_sourceAddress}\n" +
+                         $"  Destination Address: {_destinationAddress}";
             }
       }
 }
