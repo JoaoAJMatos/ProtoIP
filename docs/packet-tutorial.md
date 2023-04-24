@@ -10,7 +10,7 @@ The most common misconceptions are derived from the abstraction point of view re
 
 When prompted to define their own communication protocols, and to describe how a system should behave, students often forget the true meaning of a protocl. The majority tends to think of a protocol as something that's inherently tied to the definition of the underlying Packet structure. Wrongly assuming that a protocol is defined by the way the data is structured inside the Packet, and that the Packet itself is the protocol.
 
-That couldn't be further from the true.
+That couldn't be further from the truth.
 
 ### What is a protocol?
 
