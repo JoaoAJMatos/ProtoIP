@@ -247,7 +247,7 @@ namespace ProtoIP
             {
                   // Generate a random UUID
                   // Returns a byte array containing the UUID
-                  public static byte[] Generate()
+                  private static byte[] GenerateRandomBytes()
                   {
                         byte[] uuid = new byte[16];
                         using (var rng = new RNGCryptoServiceProvider())
@@ -257,6 +257,23 @@ namespace ProtoIP
                         uuid[6] = (byte)((uuid[6] & 0x0F) | 0x40);
                         uuid[8] = (byte)((uuid[8] & 0x3F) | 0x80);
                         return uuid;
+                  }
+
+                  // Generate a new UUID of type T
+                  public static T newID<T>()
+                  {
+                        if (typeof(T) == typeof(byte[]))
+                        {
+                              return (T)(object)GenerateRandomBytes();
+                        }
+                        else if (typeof(T) == typeof(string))
+                        {
+                              return (T)(object)ToString(GenerateRandomBytes());
+                        }
+                        else
+                        {
+                              throw new Exception("Invalid type");
+                        }
                   }
 
                   // Show a UUID as a string
