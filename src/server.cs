@@ -75,10 +75,19 @@ namespace ProtoIP
                   }
             }
 
+            // Stops the main server loop
             public void Stop()
             {
                   _listener.Stop();
                   _isRunning = false;
+            }
+
+            // Assembles a packet from the received data and returns it.
+            public Packet AssembleReceivedDataIntoPacket(int userID)
+            {
+                  byte[] data = _clients[userID].GetDataAs<byte[]>();
+                  Packet receivedPacket = Packet.Deserialize(data);
+                  return receivedPacket; 
             }
 
             // Virtual functions
