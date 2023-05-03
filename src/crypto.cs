@@ -240,6 +240,31 @@ namespace ProtoIP
                         return publicKey;
                   }
             }
+
+            // Universal Unique Identifier (UUID) version 4
+            // Provides methods for generating UUIDs
+            public class UUIDv4
+            {
+                  // Generate a random UUID
+                  // Returns a byte array containing the UUID
+                  public static byte[] Generate()
+                  {
+                        byte[] uuid = new byte[16];
+                        using (var rng = new RNGCryptoServiceProvider())
+                        {
+                              rng.GetBytes(uuid);
+                        }
+                        uuid[6] = (byte)((uuid[6] & 0x0F) | 0x40);
+                        uuid[8] = (byte)((uuid[8] & 0x3F) | 0x80);
+                        return uuid;
+                  }
+
+                  // Show a UUID as a string
+                  public static string ToString(byte[] uuid)
+                  {
+                        return BitConverter.ToString(uuid).Replace("-", "");
+                  }
+            }
       }
 }
 
