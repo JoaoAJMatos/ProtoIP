@@ -9,17 +9,38 @@ namespace ProtoIP
 {
       namespace Crypto
       {
-            // Secure Hash Algorithm 256 (SHA256)
-            // Provides an interface for hashing data using the SHA256 algorithm
-            public class SHA256
+            internal class HASH
             {
                   public byte[] _digest { get; private set; }
 
-                  // Hash a given byte array and set the digest
-                  public SHA256(byte[] data)
+                  // Get the digest as a hexadecimal string
+                  public string GetDigestString()
                   {
-                        _digest = Hash(data);
+                        StringBuilder sb = new StringBuilder();
+                        foreach (byte b in _digest)
+                        {
+                              sb.Append(b.ToString("x2"));
+                        }
+                        return sb.ToString();
                   }
+
+                  public static byte[] GenerateRandomBytes(int length)
+                  {
+                        byte[] bytes = new byte[length];
+                        using (var rng = new RNGCryptoServiceProvider())
+                        {
+                              rng.GetBytes(bytes);
+                        }
+                        return bytes;
+                  }
+            }
+
+            // Secure Hash Algorithm 256 (SHA256)
+            // Provides an interface for hashing data using the SHA256 algorithm
+            public class SHA256 : HASH
+            {
+                  // Hash a given byte array and set the digest
+                  public SHA256(byte[] data) { _digest = Hash(data); }
 
                   static byte[] Hash(byte[] data)
                   {
@@ -29,29 +50,22 @@ namespace ProtoIP
                         }
                   }
 
-                  // Get the digest as a hexadecimal string
-                  public string GetDigestString()
+                  // Hash a given byte array and salt and set the digest
+                  static byte[] Hash(byte[] data, byte[] salt)
                   {
-                        StringBuilder sb = new StringBuilder();
-                        foreach (byte b in _digest)
-                        {
-                              sb.Append(b.ToString("x2"));
-                        }
-                        return sb.ToString();
+                        byte[] dataWithSalt = new byte[data.Length + salt.Length];
+                        Buffer.BlockCopy(data, 0, dataWithSalt, 0, data.Length);
+                        Buffer.BlockCopy(salt, 0, dataWithSalt, data.Length, salt.Length);
+                        return Hash(dataWithSalt);
                   }
             }
 
             // Message-Digest Algorithm 5 (MD5)
             // Provides an interface for hashing and verifying data using the MD5 algorithm
-            public class MD5
+            public class MD5 : HASH
             {
-                  public byte[] _digest { get; private set; }
-
                   // Hash a given byte array and set the digest
-                  public MD5(byte[] data)
-                  {
-                        _digest = Hash(data);
-                  }
+                  public MD5(byte[] data) { _digest = Hash(data); }
 
                   static byte[] Hash(byte[] data)
                   {
@@ -61,15 +75,12 @@ namespace ProtoIP
                         }
                   }
 
-                  // Get the digest as a hexadecimal string
-                  public string GetDigestString()
+                  static byte[] Hash(byte[] data, byte[] salt)
                   {
-                        StringBuilder sb = new StringBuilder();
-                        foreach (byte b in _digest)
-                        {
-                              sb.Append(b.ToString("x2"));
-                        }
-                        return sb.ToString();
+                        byte[] dataWithSalt = new byte[data.Length + salt.Length];
+                        Buffer.BlockCopy(data, 0, dataWithSalt, 0, data.Length);
+                        Buffer.BlockCopy(salt, 0, dataWithSalt, data.Length, salt.Length);
+                        return Hash(dataWithSalt);
                   }
             }
 
@@ -86,7 +97,7 @@ namespace ProtoIP
                   public AES(byte[] key) { this._key = key; }
 
                   // Generate a random AES key
-                  private void GenerateKey()
+                  private void GenerateAESKey()
                   {
                         using (var aes = Aes.Create())
                         {
@@ -100,7 +111,7 @@ namespace ProtoIP
                   // Returns a byte array containing the IV and the encrypted data
                   public byte[] Encrypt(byte[] data)
                   {
-                        if (_key == null) GenerateKey();
+                        if (_key == null) throw new Exception("Key not set");
                         using (var aes = Aes.Create())
                         {
                               aes.KeySize = KEY_SIZE;
@@ -132,9 +143,10 @@ namespace ProtoIP
                               return aes.CreateDecryptor().TransformFinalBlock(encrypted, 0, encrypted.Length);
                         }
                   }
-
+ 
                   // Show the generated key as a string
                   public string GetKeyString() { return Convert.ToBase64String(_key); }
+                  public byte[] GetKeyBytes() { return _key; }
                   public void ShowKey() { Console.WriteLine(GetKeyString()); }
             }
 
