@@ -24,8 +24,7 @@ class PingPongServer : ProtoServer
 {
       public override void OnRequest(int userID)
       {
-            byte[] data = _clients[userID].GetDataAs<byte[]>();
-            Packet receivedPacket = Packet.Deserialize(data);
+            Packet receivedPacket = AssembleReceivedDataIntoPacket(userID);
 
             if (receivedPacket._GetType() == (int)Packet.Type.PING)
             {
@@ -63,8 +62,7 @@ class PingPongClient : ProtoClient
 {
       public override void OnReceive() 
       {
-            byte[] data = _protoStream.GetDataAs<byte[]>();
-            Packet receivedPacket = Packet.Deserialize(data);
+            Packet receivedPacket = AssembleReceivedDataIntoPacket();
 
             if (receivedPacket._GetType() == (int)Packet.Type.PONG)
             {
