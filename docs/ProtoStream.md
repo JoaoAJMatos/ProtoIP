@@ -25,9 +25,8 @@ When receiving data from a NetworkStream, ProtoStreams will automatically **re-a
 
 To transmit data over the network using **ProtoStreams** you can use the following variations of the `Transmit()` method:
 
-- `Transmit(byte[] data)`
-- `Transmit(string stringData)`
-- `Transmit(FileInfo file)`
+- `int Transmit(byte[] data)` - Transmits a byte array over a protostream. Returns 0 on success, -1 on failure.
+- `int Transmit(string stringData)` - Transmits a string over a protostream. Returns 0 on success, -1 on failure.
 
 All of the above will take into account the precautions described in the first two paragraphs.
 
@@ -35,13 +34,13 @@ All of the above will take into account the precautions described in the first t
 
 To receive data from a **NetworkStream**, use ProtoStream's `Receive()` function:
 
-- `Receive()`
+- `int Receive()` - Receives data from the network stream. Returns 0 on success, -1 on failure.
 
 > Assembling the data
 
 To get the received data, it must first be re-assembled. To do this, you can call one of the following methods:
 
-- `GetDataAs<T>()` - Returns the assembled data as the given data type (_**for example `GetDataAs<byte[]>()`**_).
+- `T GetDataAs<T>()` - Returns the assembled data as the given data type (_**for example `GetDataAs<byte[]>()`**_).
 
 Note that, with the first method, **you must treat the byte array correctly in the context of your application**. Writting the bytes into a file for example.
 

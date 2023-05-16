@@ -19,15 +19,15 @@ It can be used to implement more **complex Client definitions** to be used in yo
 
 > Connection
 
-- `Connect(string ip, int port)`
-- `Disconnect()`
+- `void Connect(string ip, int port)` - Connects to a remote host.
+- `void Disconnect()` - Disconnects from the remote host.
 
 > Sending data
 
 To send data over the network to a remote host using **ProtoClients**, you can use the following variations of the `Send()` method:
 
-- `Send(byte[] data)`
-- `Send(string data)`
+- `void Send(byte[] data)` - Sends a byte array over the [protostream](ProtoStream.md).
+- `void Send(string data)` - Sends a string over the [protostream](ProtoStream.md).
 
 Under the hood, the `Send()` method will call the `Transmit()` method of the **ProtoStream** object.
 
@@ -37,8 +37,8 @@ After sending the data, the virtual method `OnSend()` will be called.
 
 To receive data from a remote host, use ProtoClient's `Receive()` function:
 
-- `Receive()`
-- `public Packet AssembleReceivedDataIntoPacket()`
+- `void Receive()` - Receives data from the [protostream](ProtoStream.md).
+- `Packet AssembleReceivedDataIntoPacket()` - Assembles the received data in the [protostream](ProtoStream.md) into a packet.
 
 After receiving the data, the virtual method `OnReceive()` will be called. **This is where the data should be processed**.
 
@@ -48,10 +48,10 @@ After receiving the data, the virtual method `OnReceive()` will be called. **Thi
 
 You can define your own **client events** by overriding the following virtual methods:
 
-- `OnConnect()`
-- `OnDisconnect()`
-- `OnReceive()`
-- `OnSend()`
+- `virtual void OnConnect()` - Called when the client connects to the server.
+- `virtual void OnDisconnect()` - Called when the client disconnects from the server.
+- `virtual void OnReceive()` - Called when the client receives data from the server.
+- `virtual void OnSend()` - Called when the client sends data to the server.
 
 You can use these methods to implement your own **client logic**, like writing the received data to a file or to a database.
 

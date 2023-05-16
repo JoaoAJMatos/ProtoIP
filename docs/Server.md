@@ -21,13 +21,13 @@ Users can inherit this class to implement their own **server definitions** to be
 
 To start listening and accepting connections from clients, use the `Start()` method:
 
-- `Start(int port)` - Starts the main server loop.
-- `Stop()` - Stops the server.
+- `void Start(int port)` - Starts the main server loop.
+- `void Stop()` - Stops the server.
 
 > Sending and Receiving data
 
-- `Send(byte[] data, int userID)` - Sends data to a specific client.
-- `Receive(int userID)` - Receives data from a specific client.
+- `void Send(byte[] data, int userID)` - Sends data to a specific client.
+- `void Receive(int userID)` - Receives data from a specific client.
 - `Packet AssembleReceivedDataIntoPacket(int userID)` - Assembles the received data into a packet.
 
 ### Virtual functions
@@ -36,9 +36,9 @@ To start listening and accepting connections from clients, use the `Start()` met
 
 You can define your own **server logic** by implementing the following virtual methods:
 
-- `OnClientConnect(int userID)` - Called when a client connects to the server.
-- `OnRequest(int userID)` - Called when the client makes a request.
-- `OnResponse(int userID)` - Called when the server responds to a request.
+- `virtual void OnClientConnect(int userID)` - Called when a client connects to the server.
+- `virtual void OnRequest(int userID)` - Called when the client makes a request.
+- `virtual void OnResponse(int userID)` - Called when the server responds to a request.
 
 ## Example
 

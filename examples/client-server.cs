@@ -14,8 +14,7 @@ class ComplexClient : ProtoClient
       // In this example, we are printing out a message when the server responds
       public override void OnReceive() 
       {
-            byte[] data = _protoStream.GetDataAs<byte[]>();
-            Packet receivedPacket = Packet.Deserialize(data);
+            Packet receivedPacket = AssembleReceivedDataIntoPacket();
 
             // We can check the type of the packet and act accordingly
             if (receivedPacket._GetType() == (int)Packet.Type.PONG)
@@ -31,8 +30,7 @@ class ComplexServer : ProtoServer
       // Once the server receives a request, it will call this method
       public override void OnRequest(int userID)
       {
-            byte[] data = _clients[userID].GetDataAs<byte[]>();
-            Packet receivedPacket = Packet.Deserialize(data);
+            Packet receivedPacket = AssembleReceivedDataIntoPacket(userID);
 
             // We can check the type of the packet and act accordingly
             if (receivedPacket._GetType() == (int)Packet.Type.PING)
