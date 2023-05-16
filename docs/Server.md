@@ -28,6 +28,7 @@ To start listening and accepting connections from clients, use the `Start()` met
 
 - `Send(byte[] data, int userID)` - Sends data to a specific client.
 - `Receive(int userID)` - Receives data from a specific client.
+- `Packet AssembleReceivedDataIntoPacket(int userID)` - Assembles the received data into a packet.
 
 ### Virtual functions
 

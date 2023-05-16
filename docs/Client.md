@@ -38,6 +38,7 @@ After sending the data, the virtual method `OnSend()` will be called.
 To receive data from a remote host, use ProtoClient's `Receive()` function:
 
 - `Receive()`
+- `public Packet AssembleReceivedDataIntoPacket()`
 
 After receiving the data, the virtual method `OnReceive()` will be called. **This is where the data should be processed**.
 
