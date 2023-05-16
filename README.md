@@ -22,7 +22,7 @@
 
 ### Installing
 
-- Download the latest release from the [releases page]().
+- Download the latest release from the [releases page](https://github.com/JoaoAJMatos/ProtoIP/releases).
 - Add the **ProtoIP.dll** to your project.
 - Add the **ProtoIP** namespace to your code:
 
