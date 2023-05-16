@@ -10,7 +10,7 @@ namespace ProtoIP
       namespace Util
       {
             // Interface for interacting with the file system
-            class FileSystem
+            public class FileSystem
             {
                   // File system basic utilities
                   public static bool Exists(string path) { return File.Exists(path) || Directory.Exists(path); }
@@ -73,7 +73,7 @@ namespace ProtoIP
             }
 
             // Interface for compressing and decompressing data
-            class Compression
+            public class Compression
             {
                   // Compress a byte array using GZip and return the compressed data
                   public static byte[] Compress(byte[] data)
