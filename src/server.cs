@@ -21,34 +21,6 @@ namespace ProtoIP
 
             public ProtoServer() { }
 
-            // Creates a TCP listener and starts listening for connections
-            private void StartListening(int port)
-            {
-                  _listener = new TcpListener(port);
-                  _listener.Start();
-            }
-
-            // Accepts new connections and adds them to the clients List
-            // Calls the OnUserConnect() method in a separate thread on every connect event
-            private void AcceptConnections()
-            {
-                  try
-                  {
-                        TcpClient client = _listener.AcceptTcpClient();
-                        NetworkStream stream = client.GetStream();
-                        ProtoStream protoStream = new ProtoStream(stream);
-
-                        _clients.Add(protoStream);
-
-                        Thread thread = new Thread(() => OnUserConnect(_clients.Count - 1));
-                        thread.Start();
-                  }
-                  catch (Exception e)
-                  {
-                        _LastError = e.Message;
-                  }
-            }
-
             // Send data to the client and call the OnResponse() method
             public void Send(byte[] data, int userID)
             {
@@ -94,6 +66,34 @@ namespace ProtoIP
             public virtual void OnUserConnect(int userID) { Receive(userID); }
             public virtual void OnResponse(int userID) { }
             public virtual void OnRequest(int userID) { }
+
+            // Creates a TCP listener and starts listening for connections
+            private void StartListening(int port)
+            {
+                  _listener = new TcpListener(port);
+                  _listener.Start();
+            }
+
+            // Accepts new connections and adds them to the clients List
+            // Calls the OnUserConnect() method in a separate thread on every connect event
+            private void AcceptConnections()
+            {
+                  try
+                  {
+                        TcpClient client = _listener.AcceptTcpClient();
+                        NetworkStream stream = client.GetStream();
+                        ProtoStream protoStream = new ProtoStream(stream);
+
+                        _clients.Add(protoStream);
+
+                        Thread thread = new Thread(() => OnUserConnect(_clients.Count - 1));
+                        thread.Start();
+                  }
+                  catch (Exception e)
+                  {
+                        _LastError = e.Message;
+                  }
+            }
       }
 }
 
