@@ -9,9 +9,9 @@ namespace ProtoIP
 {
       namespace Crypto
       {
-            internal class HASH
+            public class HASH
             {
-                  public byte[] _digest { get; private set; }
+                  public byte[] _digest { get; set; }
 
                   // Get the digest as a hexadecimal string
                   public string GetDigestString()
@@ -97,7 +97,7 @@ namespace ProtoIP
                   public AES(byte[] key) { this._key = key; }
 
                   // Generate a random AES key
-                  private void GenerateAESKey()
+                  private void GenerateKey()
                   {
                         using (var aes = Aes.Create())
                         {
