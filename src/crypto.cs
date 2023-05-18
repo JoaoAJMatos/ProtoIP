@@ -97,7 +97,7 @@ namespace ProtoIP
                   public AES(byte[] key) { this._key = key; }
 
                   // Generate a random AES key
-                  private void GenerateAESKey()
+                  public void GenerateKey()
                   {
                         using (var aes = Aes.Create())
                         {
