@@ -63,7 +63,14 @@ namespace ProtoIP
             }
 
             // Virtual functions
-            public virtual void OnUserConnect(int userID) { Receive(userID); }
+            public virtual void OnUserConnect(int userID) 
+            {
+                  while (_clients[userID].IsConnected())
+                  {
+                        Receive(userID);
+                  }
+            }
+
             public virtual void OnResponse(int userID) { }
             public virtual void OnRequest(int userID) { }
 

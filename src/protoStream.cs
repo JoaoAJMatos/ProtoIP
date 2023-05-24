@@ -4,8 +4,8 @@
 using System.Net.Sockets;
 using System.Text;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using System;
 
 using ProtoIP.Common;
@@ -379,6 +379,15 @@ namespace ProtoIP
             }
 
             /* PUBLIC METHODS */
+
+            /*
+             * Checks if a peer is connected to the stream
+             */
+            public bool IsConnected()
+            {
+                  return this._stream != null && this._stream.CanRead && this._stream.CanWrite;
+            }
+
             /*
              * Transmits the data to the peer
              *
