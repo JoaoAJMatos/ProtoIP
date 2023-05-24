@@ -17,6 +17,7 @@ namespace ProtoIP
                   HANDSHAKE_REQ,
                   HANDSHAKE_RES,
                   PUBLIC_KEY,
+                  AES_KEY,
                   BYTES,
                   REPEAT,
                   EOT,
@@ -215,20 +216,34 @@ namespace ProtoIP
             // Returns the payload of the packet as the given data type
             public T GetDataAs<T>()
             {
+                  byte[] data;
+
                   switch (typeof(T).Name)
                   {
                         case "String":
-                              return (T)Convert.ChangeType(Encoding.ASCII.GetString(this._data), typeof(T));
+                              data = new byte[this._dataSize];
+                              Buffer.BlockCopy(this._data, 0, data, 0, this._dataSize);
+                              return (T)Convert.ChangeType(Encoding.ASCII.GetString(data), typeof(T));
                         case "Int32":
-                              return (T)Convert.ChangeType(BitConverter.ToInt32(this._data, 0), typeof(T));
+                              data = new byte[4];
+                              Buffer.BlockCopy(this._data, 0, data, 0, 4);
+                              return (T)Convert.ChangeType(BitConverter.ToInt32(data, 0), typeof(T));
                         case "Int64":
-                              return (T)Convert.ChangeType(BitConverter.ToInt64(this._data, 0), typeof(T));
+                              data = new byte[8];
+                              Buffer.BlockCopy(this._data, 0, data, 0, 8);
+                              return (T)Convert.ChangeType(BitConverter.ToInt64(data, 0), typeof(T));
                         case "UInt32":
-                              return (T)Convert.ChangeType(BitConverter.ToUInt32(this._data, 0), typeof(T));
+                              data = new byte[4];
+                              Buffer.BlockCopy(this._data, 0, data, 0, 4);
+                              return (T)Convert.ChangeType(BitConverter.ToUInt32(data, 0), typeof(T));
                         case "UInt64":
-                              return (T)Convert.ChangeType(BitConverter.ToUInt64(this._data, 0), typeof(T));
+                              data = new byte[8];
+                              Buffer.BlockCopy(this._data, 0, data, 0, 8);
+                              return (T)Convert.ChangeType(BitConverter.ToUInt64(data, 0), typeof(T));
                         case "Byte[]":
-                              return (T)Convert.ChangeType(this._data, typeof(T));
+                              data = new byte[this._dataSize];
+                              Buffer.BlockCopy(this._data, 0, data, 0, this._dataSize);
+                              return (T)Convert.ChangeType(data, typeof(T));
                         default:
                               return (T)Convert.ChangeType(this._data, typeof(T));
                   }
