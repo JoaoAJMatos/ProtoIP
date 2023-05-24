@@ -62,7 +62,7 @@ class Program
 }
 ```
 
-To use AES in a **real world application**, you can use the `ExportKey()` and `ImportKey()` methods to exchange the AES key with other parties.
+And to exchange the AES keys:
 
 ```csharp
 
