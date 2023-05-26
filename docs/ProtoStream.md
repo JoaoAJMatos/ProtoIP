@@ -47,7 +47,6 @@ Note that, with the first method, **you must treat the byte array correctly in t
 > Other functions
 
 - `bool IsConnected()` - Returns true if the peer is connected to the ProtoStream, false otherwise.
-- `string GetPeerIP()` - Returns the peer IP address as a string.
 
 ## Example
 

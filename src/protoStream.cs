@@ -379,12 +379,6 @@ namespace ProtoIP
             }
 
             /* PUBLIC METHODS */
-
-            public string GetPeerIP()
-            {
-                  return ((IPEndPoint)this._stream.RemoteEndPoint).Address.ToString();
-            }
-
             /*
              * Checks if a peer is connected to the stream
              */
