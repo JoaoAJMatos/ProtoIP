@@ -44,6 +44,11 @@ To get the received data, it must first be re-assembled. To do this, you can cal
 
 Note that, with the first method, **you must treat the byte array correctly in the context of your application**. Writting the bytes into a file for example.
 
+> Other functions
+
+- `bool IsConnected()` - Returns true if the peer is connected to the ProtoStream, false otherwise.
+- `string GetPeerIP()` - Returns the peer IP address as a string.
+
 ## Example
 
 ```csharp
