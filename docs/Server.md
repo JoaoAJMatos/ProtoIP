@@ -36,7 +36,7 @@ To start listening and accepting connections from clients, use the `Start()` met
 
 You can define your own **server logic** by implementing the following virtual methods:
 
-- `virtual void OnClientConnect(int userID)` - Called when a client connects to the server.
+- `virtual void OnUserConnect(int userID)` - Called when a client connects to the server.
 - `virtual void OnRequest(int userID)` - Called when the client makes a request.
 - `virtual void OnResponse(int userID)` - Called when the server responds to a request.
 
