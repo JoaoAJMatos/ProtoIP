@@ -103,7 +103,7 @@ namespace ProtoIP
             private bool peerReceiveSot()
             {
                   Packet packet = this.receivePacket();
-                  if (packet._GetType() != (int)Packet.Type.SOT)
+                  if (packet != null && packet._GetType() != (int)Packet.Type.SOT)
                   {
                         this._LastError = "Invalid packet type";
                         return false;
@@ -317,8 +317,11 @@ namespace ProtoIP
                   {
                         try
                         {
-                              this._stream.Write(data, bytesWritten, data.Length - bytesWritten);
-                              bytesWritten += data.Length - bytesWritten;
+                              if (this._stream.CanWrite)
+                              {
+                                    this._stream.Write(data, bytesWritten, data.Length - bytesWritten);
+                                    bytesWritten += data.Length - bytesWritten;
+                              }
                         }
                         catch (Exception e)
                         {
@@ -340,7 +343,8 @@ namespace ProtoIP
                   {
                         try
                         {
-                              bytesRead += this._stream.Read(data, bytesRead, data.Length - bytesRead);
+                              if (this._stream.DataAvailable || this._stream.CanRead)
+                                    bytesRead += this._stream.Read(data, bytesRead, data.Length - bytesRead);
                         }
                         catch (Exception e)
                         {

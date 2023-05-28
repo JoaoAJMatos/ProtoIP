@@ -62,15 +62,19 @@ namespace ProtoIP
                   return receivedPacket; 
             }
 
-            // Virtual functions
-            public virtual void OnUserConnect(int userID) 
+            private void HandleConnect(int userID)
             {
+                  OnUserConnect(userID);
                   while (_clients[userID].IsConnected())
                   {
                         Receive(userID);
                   }
+                  OnUserDisconnect(userID);
             }
 
+            // Virtual functions
+            public virtual void OnUserConnect(int userID) {}
+            public virtual void OnUserDisconnect(int userID) { }
             public virtual void OnResponse(int userID) { }
             public virtual void OnRequest(int userID) { }
 
@@ -93,7 +97,7 @@ namespace ProtoIP
 
                         _clients.Add(protoStream);
 
-                        Thread thread = new Thread(() => OnUserConnect(_clients.Count - 1));
+                        Thread thread = new Thread(() => HandleConnect(_clients.Count - 1));
                         thread.Start();
                   }
                   catch (Exception e)

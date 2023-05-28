@@ -57,10 +57,11 @@ namespace ProtoIP
             // Receive data from a remote host using a ProtoStream.
             //
             // Call the OnReceive() method.
-            public void Receive()
+            public void Receive(bool shouldCallOnReceive)
             {
                   _protoStream.Receive();
-                  OnReceive();
+                  if (shouldCallOnReceive)
+                        OnReceive();
             }
 
             // Assembles a packet from the recived data and returns the packet.

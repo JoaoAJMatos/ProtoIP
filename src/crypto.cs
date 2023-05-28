@@ -42,7 +42,7 @@ namespace ProtoIP
                   // Hash a given byte array and set the digest
                   public SHA256(byte[] data) { _digest = Hash(data); }
 
-                  static byte[] Hash(byte[] data)
+                  public static byte[] Hash(byte[] data)
                   {
                         using (var sha256 = SHA256Managed.Create())
                         {
@@ -51,7 +51,7 @@ namespace ProtoIP
                   }
 
                   // Hash a given byte array and salt and set the digest
-                  static byte[] Hash(byte[] data, byte[] salt)
+                  public static byte[] Hash(byte[] data, byte[] salt)
                   {
                         byte[] dataWithSalt = new byte[data.Length + salt.Length];
                         Buffer.BlockCopy(data, 0, dataWithSalt, 0, data.Length);
@@ -67,7 +67,7 @@ namespace ProtoIP
                   // Hash a given byte array and set the digest
                   public MD5(byte[] data) { _digest = Hash(data); }
 
-                  static byte[] Hash(byte[] data)
+                  public static byte[] Hash(byte[] data)
                   {
                         using (var md5 = MD5CryptoServiceProvider.Create())
                         {
@@ -75,7 +75,7 @@ namespace ProtoIP
                         }
                   }
 
-                  static byte[] Hash(byte[] data, byte[] salt)
+                  public static byte[] Hash(byte[] data, byte[] salt)
                   {
                         byte[] dataWithSalt = new byte[data.Length + salt.Length];
                         Buffer.BlockCopy(data, 0, dataWithSalt, 0, data.Length);

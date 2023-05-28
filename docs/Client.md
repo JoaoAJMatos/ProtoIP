@@ -37,7 +37,7 @@ After sending the data, the virtual method `OnSend()` will be called.
 
 To receive data from a remote host, use ProtoClient's `Receive()` function:
 
-- `void Receive()` - Receives data from the [protostream](ProtoStream.md).
+- `void Receive(bool shouldCallOnReceive)` - Receives data from the [protostream](ProtoStream.md). The flag `shouldCallOnReceive` indicates if the `OnReceive` method should be called afterwards. Default is set to true.
 - `Packet AssembleReceivedDataIntoPacket()` - Assembles the received data in the [protostream](ProtoStream.md) into a packet.
 
 After receiving the data, the virtual method `OnReceive()` will be called. **This is where the data should be processed**.
