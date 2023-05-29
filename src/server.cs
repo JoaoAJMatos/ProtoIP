@@ -14,18 +14,33 @@ namespace ProtoIP
 {
       public class ProtoServer
       {
-            protected List<ProtoStream> _clients = new List<ProtoStream>();
-            protected TcpListener _listener;
-            protected bool _isRunning = false;
-            protected string _LastError = "";
+            public List<ProtoStream> _clients { get; private set; }
+            public TcpListener _listener { get; private set; }
+            public bool _isRunning { get; private set; }
+            public string _LastError { get; private set; }
 
-            public ProtoServer() { }
+            public ProtoServer() 
+            { 
+                  _clients = new List<ProtoStream>(); 
+                  _isRunning = false;
+                  _LastError = "";
+            }
 
             // Send data to the client and call the OnResponse() method
             public void Send(byte[] data, int userID)
             {
                   _clients[userID].Transmit(data);
                   OnResponse(userID);
+            }
+
+            // Send data to all the connected clients
+            public void SendBroadcast(byte[] data)
+            {
+                  foreach (ProtoStream client in _clients)
+                  {
+                        client.Transmit(data);
+                        OnResponse(_clients.IndexOf(client));
+                  }
             }
 
             // Receive data from the client and call the OnRequest() method

@@ -27,6 +27,7 @@ To start listening and accepting connections from clients, use the `Start()` met
 > Sending and Receiving data
 
 - `void Send(byte[] data, int userID)` - Sends data to a specific client.
+- `void SendBroadcast(byte[] data)` - Broadcasts data to all of the clients.
 - `void Receive(int userID)` - Receives data from a specific client.
 - `Packet AssembleReceivedDataIntoPacket(int userID)` - Assembles the received data into a packet.
 
