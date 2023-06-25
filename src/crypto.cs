@@ -107,6 +107,15 @@ namespace ProtoIP
                         }
                   }
 
+                  public static byte[] DeriveKeyFromPassword(string password, byte[] salt)
+                  {
+                        using (var aes = Aes.Create())
+                        {
+                              aes.KeySize = KEY_SIZE;
+                              return new Rfc2898DeriveBytes(password, salt).GetBytes(aes.KeySize / 8);
+                        }
+                  }
+
                   // Encrypt a byte array using the generated key
                   // Returns a byte array containing the IV and the encrypted data
                   public byte[] Encrypt(byte[] data)
